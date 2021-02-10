@@ -1,0 +1,112 @@
+{
+    "CG" : [-0.33966184,  0.00, -0.09702828],
+    "CG_note": "we will need to determine cg location",
+    "units" : "English",
+    "weight" : 16.0,
+    "reference" : {
+        "note": "including these here means MUX doesn't have to compute it saving time",
+        "area": 12.29923797666569,
+        "longitudinal_length": 1.2399212835586666,
+        "lateral_length": 9.91936999529998
+    },
+    "inertia" : {
+        "Ixx" : 2.112657015,
+        "Iyy" : 0.345934373,
+        "Izz" : 2.436793328,
+        "Ixy" : 0.115090259,
+        "Ixz" : 0.057218762,
+        "Iyz" : -0.038928256
+    },
+    "engines" : {
+        "EDF" : {
+            "T0" : 11.2756,
+            "T1" : -0.0364,
+            "T2" : 0.0002,
+            "control" : "throttle",
+            "position" : [-0.33966184,  0.00, -0.1803616133]
+        }
+    },
+    "aero_model" : {
+        "type" : "MachUpX",
+        "solver" : "linear"
+    },
+    "controls": {
+        "sym": {
+            "is_symmetric": true,
+            "max_deflection" : 10.0,
+            "input_axis" : 1,
+            "note" : "max_deflection and input_axis only affect the controls if the joystick controller is used"
+        },
+        "asym": {
+            "is_symmetric": false,
+            "max_deflection" : 10.0,
+            "input_axis" : 0
+        },
+        "throttle" : {
+            "input_axis" : 3
+        }
+    },
+    "airfoils": {
+        "NACA_2412_fcf56_linearAlpha": {
+            "type": "poly_fit",
+            "input_file": "HorizonFits_fcf56_linearAlpha.json",
+            "geometry": {
+                "NACA": "2412"
+            }
+        }
+    },
+    "wings" : {
+        "wing" : {
+            "ID" : 1,
+            "side" : "both",
+            "is_main" : true,
+            "semispan" : 4.95968499764999,
+            "sweep" : [[0.0, 0.0],
+                       [1.0, 40.5]],
+            "dihedral" : [[0.0, 0.0],
+                          [1.0, 10.0]],
+            "chord": 1.0,
+            "grid" : {
+                "N" : 100,
+                "cluster_points": [ 0.07560964056743188,
+                                    0.1613005665438547,
+                                    0.42047294,
+                                    0.65427572,
+                                    0.83982266,
+                                    0.95895113],
+                "wing_ID": 0
+            },
+            "control_surface": {
+                "chord_fraction": [ [0.0, 0.56],
+                                    [0.07560964056743188, 0.56],
+                                    [0.07560964056743188, 0.0],
+                                    [0.1613005665438547, 0.0],
+                                    [0.1613005665438547, 0.56],
+                                    [1.0, 0.56]],
+                "control_mixing": {
+                    "sym": 1.0,
+                    "asym": 1.0
+                }
+            }
+        },
+        "winglet": {
+            "ID": 2,
+            "side": "both",
+            "is_main": false,
+            "connect_to": {
+                "ID": 1
+            },
+            "semispan": 0.551076110849999,
+            "sweep": [[0.0, 40.5],
+                      [1.0, 45.0]],
+            "dihedral": [[0.0, 10.0],
+                         [1.0, 75.0]],
+            "chord": [[0.0, 0.9166666666666666],
+                      [1.0, 0.22916666666666666]],
+            "grid": {
+                "N": 10,
+                "wing_ID": 0
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "solver": {
+        "type": "nonlinear",
+        "convergence": 1e-10,
+        "relaxation": 0.9,
+        "max_iterations": 200
+    },
+    "units": "English",
+    "scene": {
+        "atmosphere": {
+            "rho": 0.0020482,
+            "density_note": "Density of air @ approx 5000 ft--> ref. book"
+        },
+        "aircraft": {
+            "Horizon": {
+                "file": "HorizonAircraft.json",
+                "state": {
+                    "velocity": 54.0,
+                    "alpha": 0.0,
+                    "beta": 0.0,
+                    "angular_rates": [0.0, 0.0, 0.0],
+                    "angular_rate_frame": "stab"
+                },
+                "control_state": {
+                    "sym": 0.0,
+                    "asym": 0.0
+                }
+            }
+        }
+    }
+}
