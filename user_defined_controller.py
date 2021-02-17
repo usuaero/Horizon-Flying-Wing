@@ -46,10 +46,10 @@ class UserDefinedController(BaseController):
         
         ## these controls can vary from -1 to 1 with 0 being no deflection
         delta_ell = 0.0
-        delta_m = -0.3
-        throttle = 0.2
+        delta_m = -0.95750555
+        throttle = 0.10104812
         
-        if t > 0.5:
+        if t > 5.0:
             delta_ell = 1.0
         
         symDefl, asymDefl = controlMappingMode1(delta_ell, delta_m)

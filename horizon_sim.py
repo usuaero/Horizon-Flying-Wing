@@ -2,6 +2,7 @@
 from HorizonAircraft import horizonDict
 import json
 import pylot
+from numpy import pi, sin, cos
 
 ## read in scene json file
 f = open('HorizonScene.json', 'r')
@@ -29,9 +30,11 @@ simDict["simulation"] = {
 }
 
 ## Set initial state
+V = 54.
+a = 11.39897311 * pi / 180
 simDict['aircraft']['initial_state'] = {
     "position" : [0.0, 0.0, -1000.0],
-    "velocity" : [50.0, 0.0, 0.0],
+    "velocity" : [V*cos(a), 0., V*sin(a)],
 }
 
 ## Set state output
