@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from HorizonAircraft import scene, sceneDict, updateControls, updateState, bw, cbar, forcesOptions
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 import numpy as np
 import matplotlib.pyplot as plt
 import ZachsModules as zm
@@ -70,8 +70,8 @@ Nvec = [N-1] * dofs
 input(str(J))
 it = [None]*J
 prog = zm.io.Progress(J, title='Initializes Cases to Run')
-with Pool(8) as pool:
-    for i,ans in enumerate(pool.imap(initializeCases, range(J))):
+with Pool() as pool:
+    for i,ans in enumerate(pool.imap_unordered(initializeCases, range(J))):
         it[i] = ans
         prog.display()
 
@@ -172,8 +172,8 @@ if __name__ == '__main__':
     
     x = [None] * J
     prog = zm.io.Progress(J, title='Running cases')
-    with Pool(8) as pool:
-        for i,ans in enumerate(pool.imap(horizonForcesMoments, it)):
+    with Pool() as pool:
+        for i,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it, 3)):
             x[i] = ans
             zm.io.appendToFile(fn, *ans[0], *ans[1])
             prog.display()
