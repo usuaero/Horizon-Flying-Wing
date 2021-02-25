@@ -1,8 +1,8 @@
 import json
-import numpy as np
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import machupX as mx
+import numpy as np
 
 ## constants
 #####################################################################
