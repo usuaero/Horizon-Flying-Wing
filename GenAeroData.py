@@ -32,7 +32,7 @@ def horizonForcesMoments(inp):
         fm = [ x['Cx_s'], x['Cy_s'], x['Cz_s'], x['Cl_s'], x['Cm_s'], x['Cn_s'] ]
     except mx.exceptions.SolverNotConvergedError:
         fm = [None] * 6
-    return inp, fm
+    return (*inp, *fm)
 
 def initializeCases(j):
     n = pf.decompose_j(j, Nvec)
@@ -48,7 +48,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 5
+N = 2
 d = 20
 
 DEFL = np.linspace(-d,d,N)
@@ -62,7 +62,7 @@ BETA = np.linspace(-30,30,N)
 
 data = [PBAR, QBAR, RBAR, AOA, BETA]
 
-dofs = 5
+dofs = 11
 
 J = N ** dofs
 Nvec = [N-1] * dofs
@@ -125,23 +125,6 @@ for i in range(0,J,n):
 
 if __name__ == '__main__':
     
-    # nBatch = 1000
-    
-    # for i in range(0,J,n):
-        
-        # if i+n>J:
-            
-            
-            
-        # else:
-            # x = [None] * n
-            # with Pool(8) as pool:
-                # for j,ans in enumerate(pool.imap(horizonForcesMoments, it[i:i+n])):
-                    # x[j] = ans
-        
-        
-    
-    
     fn = 'HorizonAerodynamicDatabase.csv'
     f = open(fn, 'w')
     f.write(zm.io.csvLineWrite( 'Center',
@@ -166,16 +149,39 @@ if __name__ == '__main__':
                                 'Cl_s',
                                 'Cm_s',
                                 'Cn_s' ) )
-    
     f.close()
+    
+    nBatch = 3000
+    prog = zm.io.Progress(J//nBatch+1, title='Running Cases: batches')
+    for i in range(0,J,nBatch):
+        
+        if i+nBatch>J:
+            n = J - i
+            x = [None] * n
+            with Pool() as pool:
+                for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:], 3)):
+                    x[j] = ans
+        else:
+            x = [None] * nBatch
+            with Pool() as pool:
+                for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:i+nBatch], 3)):
+                    x[j] = ans
+        
+        # x = [(*i[0], *i[1]) for i in x]
+        
+        zm.io.appendToFile(fn, *x, multiLine=True)
+        
+        prog.display()
+    
+    
     
     
     x = [None] * J
-    prog = zm.io.Progress(J, title='Running cases')
+    prog = zm.io.Progress(J, title='Running cases: solve and write')
     with Pool() as pool:
         for i,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it, 3)):
             x[i] = ans
-            zm.io.appendToFile(fn, *ans[0], *ans[1])
+            zm.io.appendToFile(fn, *ans)
             prog.display()
     
     
