@@ -2,7 +2,7 @@
     "solver": {
         "type": "nonlinear",
         "convergence": 1e-10,
-        "relaxation": 0.8,
+        "relaxation": 0.9,
         "max_iterations": 200
     },
     "units": "English",
