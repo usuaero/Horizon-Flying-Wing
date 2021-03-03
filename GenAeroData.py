@@ -151,38 +151,41 @@ if __name__ == '__main__':
                                 'Cn_s' ) )
     f.close()
     
-    nBatch = 3000
-    prog = zm.io.Progress(J//nBatch+1, title='Running Cases: batches')
-    for i in range(0,J,nBatch):
+    
+    zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=3000, chunkSize=3, progKW={'title':'Running Cases: batches'})
+    
+    
+    
+    # nBatch = 3000
+    # prog = zm.io.Progress(J//nBatch+1, title='Running Cases: batches')
+    # for i in range(0,J,nBatch):
         
-        if i+nBatch>J:
-            n = J - i
-            x = [None] * n
-            with Pool() as pool:
-                for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:], 3)):
-                    x[j] = ans
-        else:
-            x = [None] * nBatch
-            with Pool() as pool:
-                for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:i+nBatch], 3)):
-                    x[j] = ans
+        # if i+nBatch>J:
+            # n = J - i
+            # x = [None] * n
+            # with Pool() as pool:
+                # for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:], 3)):
+                    # x[j] = ans
+        # else:
+            # x = [None] * nBatch
+            # with Pool() as pool:
+                # for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:i+nBatch], 3)):
+                    # x[j] = ans
         
-        # x = [(*i[0], *i[1]) for i in x]
+        # zm.io.appendToFile(fn, *x, multiLine=True)
         
-        zm.io.appendToFile(fn, *x, multiLine=True)
-        
-        prog.display()
+        # prog.display()
     
     
     
     
-    x = [None] * J
-    prog = zm.io.Progress(J, title='Running cases: solve and write')
-    with Pool() as pool:
-        for i,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it, 3)):
-            x[i] = ans
-            zm.io.appendToFile(fn, *ans)
-            prog.display()
+    # x = [None] * J
+    # prog = zm.io.Progress(J, title='Running cases: solve and write')
+    # with Pool() as pool:
+        # for i,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it, 3)):
+            # x[i] = ans
+            # zm.io.appendToFile(fn, *ans)
+            # prog.display()
     
     
     
