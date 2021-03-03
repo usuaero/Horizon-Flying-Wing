@@ -67,7 +67,6 @@ dofs = 9
 J = N ** dofs
 Nvec = [N-1] * dofs
 
-# input(str(J))
 it = [None]*J
 prog = zm.io.Progress(J, title='Initializes Cases to Run')
 with Pool() as pool:
@@ -76,52 +75,6 @@ with Pool() as pool:
         prog.display()
 
 
-
-
-
-
-
-
-'''
-# if __name__ == '__main__':
-n = 28
-# prog = zm.io.Progress(n, title='Running cases')
-
-# for i in range(1,J//n+2):
-    # s = (i-1)*n
-    # if i * n < J:
-        # s, e = (i-1)*n, i*n
-        # print((i-1)*n, i*n)
-        # with Pool(8) as pool:
-            # x = pool.map(f, it[(i-1)*n:i*n])
-    # else:
-        # print((i-1)*n,J)
-        # s, e = (i-1)*n, J
-
-for i in range(0,J,n):
-    # with Pool(8) as pool:
-        # if i+n > J:
-            # x = pool.map(f, it[i:])
-        # else:
-            # x = pool.map(f, it[i:i+n])
-    if i+n > J:
-        with Pool(processes=6) as pool:
-            x = pool.map(f, it[i:])
-    else:
-        with Pool(processes=6) as pool:
-            x = pool.map(f, it[i:i+n])
-    
-    
-    # obj = [k for k in x]
-    
-    
-    ## write data
-    print()
-    print(x)
-    input()
-    ## progress bar update
-    # prog.display()
-'''
 
 if __name__ == '__main__':
     
@@ -152,47 +105,5 @@ if __name__ == '__main__':
     f.close()
     
     
-    zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=3000, chunkSize=3, progKW={'title':'Running Cases: batches'})
-    
-    
-    
-    # nBatch = 3000
-    # prog = zm.io.Progress(J//nBatch+1, title='Running Cases: batches')
-    # for i in range(0,J,nBatch):
-        
-        # if i+nBatch>J:
-            # n = J - i
-            # x = [None] * n
-            # with Pool() as pool:
-                # for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:], 3)):
-                    # x[j] = ans
-        # else:
-            # x = [None] * nBatch
-            # with Pool() as pool:
-                # for j,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it[i:i+nBatch], 3)):
-                    # x[j] = ans
-        
-        # zm.io.appendToFile(fn, *x, multiLine=True)
-        
-        # prog.display()
-    
-    
-    
-    
-    # x = [None] * J
-    # prog = zm.io.Progress(J, title='Running cases: solve and write')
-    # with Pool() as pool:
-        # for i,ans in enumerate(pool.imap_unordered(horizonForcesMoments, it, 3)):
-            # x[i] = ans
-            # zm.io.appendToFile(fn, *ans)
-            # prog.display()
-    
-    
-    
-    # for line in x:
-        # print(line)
-        # input()
-    
-    # input()
-    
-    
+    zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=9600, chunkSize=3, progKW={'title':'Running Cases: batches'})
+
