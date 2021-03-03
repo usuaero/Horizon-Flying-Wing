@@ -68,7 +68,7 @@ J = N ** dofs
 Nvec = [N-1] * dofs
 
 it = [None]*J
-prog = zm.io.Progress(J, title='Initializes Cases to Run')
+prog = zm.io.Progress(J, title='Initializing {} dofs with {} spread each for a total of {} cases'.format(dofs, N, J))
 with Pool() as pool:
     for i,ans in enumerate(pool.imap_unordered(initializeCases, range(J))):
         it[i] = ans
@@ -104,6 +104,8 @@ if __name__ == '__main__':
                                 'Cn_s' ) )
     f.close()
     
+    bat = 5000
+    chu = 1
     
-    zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=9600, chunkSize=3, progKW={'title':'Running Cases: batches'})
+    zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=bat, chunkSize=chu, progKW={'title':'Running Cases: {}/batch, {}/chunck'.format(bat,chu)})
 
