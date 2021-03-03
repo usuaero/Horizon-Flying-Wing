@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from HorizonAircraft import scene, sceneDict, updateControls, updateState, bw, cbar, forcesOptions
-from multiprocessing import Pool, cpu_count
+# from multiprocessing import Pool, cpu_count
 import numpy as np
 import matplotlib.pyplot as plt
 import ZachsModules as zm
@@ -48,7 +48,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 2
+N = 5
 d = 20
 
 DEFL = np.linspace(-d,d,N)
@@ -62,12 +62,12 @@ BETA = np.linspace(-30,30,N)
 
 data = [PBAR, QBAR, RBAR, AOA, BETA]
 
-dofs = 11
+dofs = 9
 
 J = N ** dofs
 Nvec = [N-1] * dofs
 
-input(str(J))
+# input(str(J))
 it = [None]*J
 prog = zm.io.Progress(J, title='Initializes Cases to Run')
 with Pool() as pool:
