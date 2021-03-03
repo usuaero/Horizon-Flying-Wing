@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from HorizonAircraft import scene, sceneDict, updateControls, updateState, bw, cbar, forcesOptions
-# from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count
 import numpy as np
 import matplotlib.pyplot as plt
 import ZachsModules as zm
