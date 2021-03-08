@@ -13,6 +13,9 @@ qbar2q = 2. * 54. / cbar
 def horizonForcesMoments(j):
     ## unpack inputs
     n = pf.decompose_j(j, Nvec)
+    
+    while len(n) < 16: n.append(0)
+    
     ## update the aircraft state
     updateState(54., AOA[n[14]], BETA[n[15]], [ PBAR[n[11]]*pbar2p,
                                                 QBAR[n[12]]*qbar2q,
@@ -56,7 +59,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 3
+N = 2
 d = 20
 
 DEFL = np.linspace(-d,d,N)
@@ -70,7 +73,7 @@ BETA = np.linspace(-30,30,N)
 
 data = [PBAR, QBAR, RBAR, AOA, BETA]
 
-dofs = 16
+dofs = 8
 
 J = N ** dofs
 Nvec = [N-1] * dofs
@@ -141,8 +144,12 @@ if __name__ == '__main__':
     
     f.close()
     
-    bat = 768
+    bat = 100
     chu = 3
     
     zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=bat, chunkSize=chu, progKW={'title':'Running Cases: {}/batch, {}/chunck'.format(bat,chu)})
+    
+    
+    
+    print(horizonForcesMoments(50))
 

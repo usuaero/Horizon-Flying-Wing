@@ -53,7 +53,7 @@ def boundActuators(sym, asym, d=20.):
     return [sym[0]]+s, a
 
 def Mode1(dl, dm):
-    return boundActuators([20.*dm**3.]*6, [20.*dl**3.]*5)
+    return boundActuators([20.*dm]*6, [20.*dl]*5)
 
 '''
 Definitions
