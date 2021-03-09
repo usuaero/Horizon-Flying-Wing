@@ -14,6 +14,11 @@ f.close()
 #####################################################################
 #####################################################################
 
+## set sim atmosphere
+simDict['atmosphere'] = {
+    'density': simDict['scene']['atmosphere']['rho']
+}
+
 ## sim aircraft
 simDict['aircraft'] = {
     'name' : 'Horizon',
@@ -35,7 +40,7 @@ a = 11.39897311 * pi / 180
 simDict['aircraft']['initial_state'] = {
     "position" : [0.0, 0.0, -1000.0],
     "velocity" : [V*cos(a), 0., V*sin(a)],
-    "orientation": [0., a*180/pi, 0.]
+    "orientation": [0., a*180./pi, 0.]
 }
 
 ## Set state output
