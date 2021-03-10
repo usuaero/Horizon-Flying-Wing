@@ -10,12 +10,12 @@
         "lateral_length": 9.91936999529998
     },
     "inertia" : {
-        "Ixx" : 2.112657015,
-        "Iyy" : 0.345934373,
-        "Izz" : 2.436793328,
-        "Ixy" : 0.115090259,
-        "Ixz" : 0.057218762,
-        "Iyz" : -0.038928256
+        "Ixx" : 2.6521,
+        "Iyy" : 0.5419,
+        "Izz" : 3.1580,
+        "Ixy" : 0.1041,
+        "Ixz" : 0.0816,
+        "Iyz" : 0.0141
     },
     "engines" : {
         "EDF" : {
@@ -29,7 +29,8 @@
     },
     "aero_model" : {
         "type" : "MachUpX",
-        "solver" : "linear"
+        "solver" : "nonlinear",
+        "stall_model": "none"
     },
     "controls": {
         "sym": {
