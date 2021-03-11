@@ -19,8 +19,8 @@ def boundActuators(sym, asym, d=20.):
             l = -d
             flag = True
         if flag:
-            s[i] = (l+r)/2.
-            a[i]  = (l-r)/2.
+            s[i] = (r+l)/2.
+            a[i] = (r-l)/2.
     return [sym[0]]+s, a
 
 
