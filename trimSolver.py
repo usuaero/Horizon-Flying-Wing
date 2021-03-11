@@ -2,6 +2,7 @@ from HorizonAircraft import scene, sceneDict, horizonDict, updateControls, updat
 from scipy.optimize import minimize
 import ZachsModules as zm
 from numpy import cos, sin, pi
+from controlMapping import mode1
 
 omega = sceneDict['scene']['aircraft']['Horizon']['state']['angular_rates']
 
@@ -28,32 +29,6 @@ def engineFM(dt):
     CmEngine = zOffset * thrust / dynPress / Sw / cbar
     return CT, CmEngine
 
-def boundActuators(sym, asym, d=20.):
-    s = list(sym[1:])
-    a = asym[:]
-    for i in range(5):
-        r = s[i] + a[i]
-        l = s[i] - a[i]
-        flag = False
-        if r >  d:
-            r =  d
-            flag = True
-        elif r < -d:
-            r = -d
-            flag = True
-        if l >  d:
-            l =  d
-            flag = True
-        elif l < -d:
-            l = -d
-            flag = True
-        if flag:
-            s[i] = (l+r)/2.
-            a[i]  = (l-r)/2.
-    return [sym[0]]+s, a
-
-def Mode1(dl, dm):
-    return boundActuators([20.*dm]*6, [20.*dl]*5)
 
 '''
 Definitions
@@ -69,7 +44,7 @@ def cost(x, separate=False):
     dt, dm, aoa = x
     
     updateState(V, aoa, 0., omega, scene)
-    updateControls(*Mode1(0., dm), scene)
+    updateControls(*mode1(0., dm), scene)
     
     fm = scene.solve_forces(**forcesOptions)['Horizon']['total']
     
@@ -122,14 +97,19 @@ sol = minimize(cost, x0, method='SLSQP',
                 tol = 1.e-15,
                 callback=display)
 
-print(sol)
+display.prog.Set(maxiter+1)
+display(sol.x)
 
-updateState(V, sol.x[2], 0., omega, scene)
-updateControls(*Mode1(0., sol.x[1]), scene)
+names = ('throttle', 'pitch', 'aoa')
+for i in range(3):
+    print('{:^8s}  {:.16f}'.format(names[i], sol.x[i]))
 
-fm = scene.solve_forces(**forcesOptions)['Horizon']['total']
-CT,cm = engineFM(sol.x[0])
+# updateState(V, sol.x[2], 0., omega, scene)
+# updateControls(*mode1(0., sol.x[1]), scene)
 
-print()
-print(fm)
-print(CT,cm)
+# fm = scene.solve_forces(**forcesOptions)['Horizon']['total']
+# CT,cm = engineFM(sol.x[0])
+
+# print()
+# print(fm)
+# print(CT,cm)
