@@ -2,3 +2,6 @@ __pycache__
 states.txt
 *.csv
 z*
+*.out
+*.exe
+*.o
