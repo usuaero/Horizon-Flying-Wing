@@ -14,8 +14,6 @@ def horizonForcesMoments(j):
     ## unpack inputs
     n = pf.decompose_j(j, Nvec)
     
-    while len(n) < 16: n.append(0)
-    
     ## update the aircraft state
     updateState(54., AOA[n[14]], BETA[n[15]], [ PBAR[n[11]]*pbar2p,
                                                 QBAR[n[12]]*qbar2q,
@@ -24,18 +22,6 @@ def horizonForcesMoments(j):
     l = [DEFL[i] for i in n[6:11]]
     s = [(r[i]+l[i])/2. for i in range(5)]
     a = [(r[i]-l[i])/2. for i in range(5)]
-    # updateControls( [   DEFL[n[0]], 
-                        # (inp[1]+inp[ 6])/2.,
-                        # (inp[2]+inp[ 7])/2.,
-                        # (inp[3]+inp[ 8])/2.,
-                        # (inp[4]+inp[ 9])/2.,
-                        # (inp[5]+inp[10])/2.],
-                    # [   (inp[1]-inp[ 6])/2.,
-                        # (inp[2]-inp[ 7])/2.,
-                        # (inp[3]-inp[ 8])/2.,
-                        # (inp[4]-inp[ 9])/2.,
-                        # (inp[5]-inp[10])/2.],
-                    # scene)
     updateControls([DEFL[n[0]]]+s, a, scene)
     try:
         x = scene.solve_forces(**forcesOptions)['Horizon']['total']
@@ -43,7 +29,6 @@ def horizonForcesMoments(j):
     except mx.exceptions.SolverNotConvergedError:
         fm = [None] * 6
     return (j, *fm)
-    # return fm
 
 def initializeCases(j):
     n = pf.decompose_j(j, Nvec)
@@ -59,7 +44,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 2
+N = 3
 d = 20
 
 DEFL = np.linspace(-d,d,N)
@@ -73,46 +58,19 @@ BETA = np.linspace(-30,30,N)
 
 data = [PBAR, QBAR, RBAR, AOA, BETA]
 
-dofs = 8
+dofs = 16
 
 J = N ** dofs
 Nvec = [N-1] * dofs
 
-# it = [None]*J
-# prog = zm.io.Progress(J, title='Initializing {} dofs with {} spread each for a total of {} cases'.format(dofs, N, J))
-# with Pool() as pool:
-    # for i,ans in enumerate(pool.imap_unordered(initializeCases, range(J), J//(cpu_count()*4))):
-        # it[i] = ans
-        # prog.display()
-it = list(range(J))
+startingPoint = 10420000
+it = list(range(startingPoint,J))
 
 
 if __name__ == '__main__':
     
-    fn = 'HorizonAerodynamicDatabase.csv'
+    fn = 'HorizonAerodynamicDatabase_{}.csv'.format(startingPoint)
     f = open(fn, 'w')
-    # f.write(zm.io.csvLineWrite( 'Center',
-                                # 'R0',
-                                # 'R1',
-                                # 'R2',
-                                # 'R3',
-                                # 'R4',
-                                # 'L0',
-                                # 'L1',
-                                # 'L2',
-                                # 'L3',
-                                # 'L4',
-                                # 'PBAR',
-                                # 'QBAR',
-                                # 'RBAR',
-                                # 'AOA',
-                                # 'BETA',
-                                # 'Cx_s',
-                                # 'Cy_s',
-                                # 'Cz_s',
-                                # 'Cl_s',
-                                # 'Cm_s',
-                                # 'Cn_s' ) )
     
     f.write(zm.io.csvLineWrite( 'J',
                                 'Center',
@@ -144,12 +102,8 @@ if __name__ == '__main__':
     
     f.close()
     
-    bat = 100
-    chu = 3
+    bat = 1000000
+    chu = 5
     
     zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=bat, chunkSize=chu, progKW={'title':'Running Cases: {}/batch, {}/chunck'.format(bat,chu)})
-    
-    
-    
-    print(horizonForcesMoments(50))
 
