@@ -49,7 +49,7 @@ lines = [   '#!/bin/bash',
             'module purge',
             'module load python/3.7.3',
             'cd /uufs/chpc.utah.edu/common/home/u6035531/usuAeroLabCodes/Horizon-Flying-Wing',
-            'python GenAeroData.py {} {} {} {} > out_$SLURM_JOB_ID.txt']
+            'python GenAeroData.py {} {} {} {}']
 
 
 if __name__ == '__main__':
@@ -72,6 +72,7 @@ if __name__ == '__main__':
         chunck = 3
         
         lines[-1].format(start, end, batch, chunck)
+        lines[-1] += ' > out_$SLURM_JOB_ID.txt'
         
         fn = 'job_{}.slurm'.format(jid)
         f = open(fn, 'w')
