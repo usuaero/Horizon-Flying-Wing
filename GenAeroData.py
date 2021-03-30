@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import ZachsModules as zm
 import polyFits as pf
 import machupX as mx
+import sys
 
 pbar2p = 2. * 54. / bw
 qbar2q = 2. * 54. / cbar
@@ -63,13 +64,15 @@ dofs = 16
 J = N ** dofs
 Nvec = [N-1] * dofs
 
-startingPoint = 10420000
-it = list(range(startingPoint,J))
-
-
 if __name__ == '__main__':
     
-    fn = 'HorizonAerodynamicDatabase_{}.csv'.format(startingPoint)
+    start = int(sys.argv[1])
+    end   = int(sys.argv[2])
+    it    = list(range(start,end+1))
+    
+    jid = str(dt.now()).replace(':','_').replace(' ','__')
+    
+    fn = 'HorizonAerodynamicDatabase_{}_start{}_end{}.csv'.format(jid, start, end)
     f = open(fn, 'w')
     
     f.write(zm.io.csvLineWrite( 'J',
@@ -102,8 +105,8 @@ if __name__ == '__main__':
     
     f.close()
     
-    bat = 1000000
-    chu = 5
+    bat = int(sys.argv[3])
+    chu = int(sys.argv[4])
     
     zm.nm.runCases(horizonForcesMoments, it, fn, nBatch=bat, chunkSize=chu, progKW={'title':'Running Cases: {}/batch, {}/chunck'.format(bat,chu)})
 
