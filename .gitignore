@@ -5,3 +5,4 @@ z*
 *.out
 *.exe
 *.o
+*.slurm

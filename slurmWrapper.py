@@ -37,7 +37,7 @@ def displayCases(C):
         print('Slurm {:1d}: start {:2d}, end {:2d}'.format(t,s,e))
 
 
-lines = [   '#!/bin/bash',
+template = ['#!/bin/bash',
             '#SBATCH --time=5-00:00:00',
             '#SBATCH --nodes=1',
             '#SBATCH --account=usumae-kp',
@@ -71,7 +71,8 @@ if __name__ == '__main__':
             batch = 1e6
         chunck = 3
         
-        lines[-1].format(start, end, batch, chunck)
+        lines = template[:]
+        lines[-1] = lines[-1].format(start, end, batch, chunck)
         lines[-1] += ' > out_$SLURM_JOB_ID.txt'
         
         fn = 'job_{}.slurm'.format(jid)
