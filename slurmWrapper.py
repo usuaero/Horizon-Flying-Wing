@@ -65,7 +65,7 @@ if __name__ == '__main__':
     
     for slurm in slurms:
         
-        jid = str(dt.now()).replace(':','_').replace(' ','__')
+        ##jid = str(dt.now()).replace(':','_').replace(' ','__')
         
         start, end = slurm[1:]
         
