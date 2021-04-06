@@ -1,6 +1,6 @@
 {
     "solver": {
-        "type": "nonlinear",
+        "type": "linear",
         "convergence": 1e-8,
         "relaxation": 0.8,
         "max_iterations": 200

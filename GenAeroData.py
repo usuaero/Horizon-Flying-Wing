@@ -8,6 +8,9 @@ import polyFits as pf
 import machupX as mx
 import sys
 
+forcesOptions = {'body_frame':True, 'stab_frame':False, 'wind_frame':False,
+                    'dimensional':False}#, 'verbose':True}
+
 pbar2p = 2. * 54. / bw
 qbar2q = 2. * 54. / cbar
 
@@ -26,7 +29,7 @@ def horizonForcesMoments(j):
     updateControls([DEFL[n[0]]]+s, a, scene)
     try:
         x = scene.solve_forces(**forcesOptions)['Horizon']['total']
-        fm = [ x['Cx_s'], x['Cy_s'], x['Cz_s'], x['Cl_s'], x['Cm_s'], x['Cn_s'] ]
+        fm = [ x['Cx'], x['Cy'], x['Cz'], x['Cl'], x['Cm'], x['Cn'] ]
     except mx.exceptions.SolverNotConvergedError:
         fm = [None] * 6
     return (j, *fm)
@@ -45,7 +48,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 3
+N = 7
 d = 20
 
 DEFL = np.linspace(-d,d,N)
@@ -72,7 +75,7 @@ if __name__ == '__main__':
     
     jid = str(dt.now()).replace(':','_').replace(' ','__')
     
-    fn = 'HorizonAerodynamicDatabase_{}_start{}_end{}.csv'.format(jid, start, end)
+    fn = 'LinearHorizonAerodynamicDatabase_start{}_end{}.csv'.format(start, end)
     f = open(fn, 'w')
     
     f.write(zm.io.csvLineWrite( 'J',
@@ -96,12 +99,12 @@ if __name__ == '__main__':
     f.write('\n')
     
     f.write(zm.io.csvLineWrite( 'j',
-                                'Cx_s',
-                                'Cy_s',
-                                'Cz_s',
-                                'Cl_s',
-                                'Cm_s',
-                                'Cn_s' ) )
+                                'Cx',
+                                'Cy',
+                                'Cz',
+                                'Cl',
+                                'Cm',
+                                'Cn' ) )
     
     f.close()
     
