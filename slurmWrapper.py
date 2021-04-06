@@ -57,9 +57,9 @@ template = ['#!/bin/bash',
             'python GenAeroData.py {} {} {} {}']
 
 
-if __name__ == '__main__':
-    Ncases = int(eval(sys.argv[1]))
-    Nnodes = int(sys.argv[2])
+if True:#__name__ == '__main__':
+    Ncases = 5**16#int(eval(sys.argv[1]))
+    Nnodes = 20#int(sys.argv[2])
     
     slurms = multiTasker(Ncases,Nnodes)
     
