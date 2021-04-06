@@ -38,11 +38,11 @@ simDict["simulation"] = {
 
 ## Set initial state
 V = 54.
-a = cm.mode1Trim(control=False) * pi / 180
+a = cm.mode2Trim(control=False) * pi / 180
 simDict['aircraft']['initial_state'] = {
     "position" : [0.0, 0.0, -1000.0],
     "velocity" : [V*cos(a), 0., V*sin(a)],
-    "orientation": [0., cm.mode1Trim(control=False), 0.]
+    "orientation": [0., cm.mode2Trim(control=False), 0.]
 }
 
 ## Set state output

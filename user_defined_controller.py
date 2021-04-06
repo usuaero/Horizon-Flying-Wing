@@ -37,7 +37,7 @@ class UserDefinedController(BaseController):
             Dictionary of controls.
         """
         
-        thr, dl, dm = cm.mode1Trim()
+        thr, dL, dl, dm = cm.mode2Trim()
         
         if thr > 1.: thr = 1.
         if thr < 0.: thr = 0.
@@ -48,7 +48,10 @@ class UserDefinedController(BaseController):
         if dl >  1.: dl = 1.
         if dl < -1.: dl = -1.
         
-        symDefl, asymDefl = cm.mode1(dl, dm)
+        if dL < 0.: dL = 0.
+        if dL > 1.: dL = 1.
+        
+        symDefl, asymDefl = cm.mode2(dL, dl, dm)
         
         Sym, Asym = generateControlFunctions(symDefl, asymDefl)
         
