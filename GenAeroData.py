@@ -48,7 +48,7 @@ def initializeCases(j):
         i -= 1
     return vals #.append(mx.Scene(sceneDict)))
 
-N = 5
+N = 3
 d = 20
 
 DEFL = np.linspace(-d,d,N)
