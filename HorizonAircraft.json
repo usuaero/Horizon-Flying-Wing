@@ -1,8 +1,8 @@
 {
-    "CG" : [-0.33966184,  0.00, -0.09702828],
+    "CG" : [-0.415929631, 0.0, -0.112],
     "CG_note": "we will need to determine cg location",
     "units" : "English",
-    "weight" : 16.0,
+    "weight" : 17.5,
     "reference" : {
         "note": "including these here means MUX doesn't have to compute it saving time",
         "area": 12.29923797666569,
@@ -10,12 +10,12 @@
         "lateral_length": 9.91936999529998
     },
     "inertia" : {
-        "Ixx" : 2.6521,
-        "Iyy" : 0.5419,
-        "Izz" : 3.1580,
-        "Ixy" : 0.1041,
-        "Ixz" : 0.0816,
-        "Iyz" : 0.0141
+        "Ixx" : 2.649332405,
+        "Iyy" : 0.527028204,
+        "Izz" : 3.140611898,
+        "Ixy" : 0.098063587,
+        "Ixz" : 0.08042395,
+        "Iyz" : 0.0134896
     },
     "engines" : {
         "EDF" : {
@@ -24,7 +24,7 @@
             "T2" : 0.0002,
             "a"  : 0.0,
             "control" : "throttle",
-            "position" : [-0.33966184,  0.00, -0.1803616133]
+            "position" : [-0.07, 0.0, -0.08]
         }
     },
     "aero_model" : {

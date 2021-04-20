@@ -23,6 +23,8 @@ def boundActuators(sym, asym, d=20.):
             a[i] = (r-l)/2.
     return [sym[0]]+s, a
 
+def modeRC(dl, dm, d=20.):
+    return boundActuators([0.]+[d*dm]*5, [d*dl]*5, d=d)
 
 def mode1(dl, dm, d=20.):
     return boundActuators([d*dm]*6, [d*dl]*5, d=d)

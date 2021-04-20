@@ -2,7 +2,7 @@ from HorizonAircraft import scene, sceneDict, horizonDict, updateControls, updat
 from scipy.optimize import minimize
 import ZachsModules as zm
 from numpy import cos, sin, pi
-from controlMapping import mode1, mode2
+from controlMapping import modeRC
 
 omega = sceneDict['scene']['aircraft']['Horizon']['state']['angular_rates']
 
@@ -44,7 +44,7 @@ def cost(x, separate=False):
     dt, dm, aoa = x
     
     updateState(V, aoa, 0., omega, scene)
-    updateControls(*mode2(CW/0.9, 0., dm), scene)
+    updateControls(*modeRC(0., dm), scene)
     
     fm = scene.solve_forces(**forcesOptions)['Horizon']['total']
     
@@ -104,7 +104,9 @@ names = ('throttle', 'pitch', 'aoa')
 for i in range(3):
     print('{:^8s}  {:.16f}'.format(names[i], sol.x[i]))
 
-print('{:^8s}  {:.16f}'.format('dL', CW/0.9))
+print(sol.x[1]*20)
+
+# print('{:^8s}  {:.16f}'.format('dL'))
 
 # updateState(V, sol.x[2], 0., omega, scene)
 # updateControls(*mode1(0., sol.x[1]), scene)
