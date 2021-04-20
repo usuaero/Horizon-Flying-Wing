@@ -40,6 +40,7 @@ f.close()
 Sw = horizonDict['reference']['area']
 bw = horizonDict['reference']['lateral_length']
 cbar = horizonDict['reference']['longitudinal_length']
+V = sceneDict['scene']['aircraft']['Horizon']['state']['velocity']
 
 ## useful functions
 #####################################################################
