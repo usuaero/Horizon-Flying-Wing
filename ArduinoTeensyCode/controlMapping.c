@@ -8,7 +8,9 @@ double right(double s, double a);
 double bounds(double x);
 double calc_dL(double V, double phi, double p, double climbRate);
 
-void mode1(double dl, double dm, double *lr);
+double pwm2frac(int pwm);
+
+void mode1(int dl_pwm, int dm_pwm, double *lr);
 void mode2(double dL, double dl, double dm, double *lr);
 
 // define the global constants (they are all in uppercase for ease of identifying)
@@ -28,24 +30,29 @@ void mode2(double dL, double dl, double dm, double *lr);
 #define S 12.29923797666569         // planform area of main wing (ft^2)
 #define B 9.91936999529998          // wingspan (ft)
 
+// transmitter values
+#define TRANS_PWM_MIN 900.0
+#define TRANS_PWM_MAX 2096.0
+#define TRANS_PWM_NOM 1495.0
+
 // main function
 
 int main() {
     
-    double deg[11], dL, dl, dm;
-    int i;
+    double deg[11], dL;
+    int i, dl, dm;
     
     while(1) {
         printf("\n\n\n=================================================\n\n\n");
         
-        printf("\nEnter a value for dL:    ");
-        scanf("%lf", &dL);
+        // printf("\nEnter a value for dL:    ");
+        // scanf("%lf", &dL);
         printf("Enter a value for dl:    ");
-        scanf("%lf", &dl);
+        scanf("%d", &dl);
         printf("Enter a value for dm:    ");
-        scanf("%lf", &dm);
+        scanf("%d", &dm);
         
-        mode2(dL, dl, dm, deg);
+        mode1(dl, dm, deg);
         
         printf("\nResults in degrees are:\n");
         for (i=0; i<5; i++) {
@@ -160,10 +167,18 @@ double calc_dL(double V, double phi, double p, double climbRate, double theta) {
     }
 }
 
+double pwm2frac(int pwm) {
+    if (pwm > int(TRANS_PWM_MAX)) return 1.0;
+    if (pwm < int(TRANS_PWM_MIN)) return -1.0;
+    return 2.0 * (double(pwm) - TRANS_PWM_MIN) / (TRANS_PWM_MAX - TRANS_PWM_MIN) - 1.0;
+}
 
-void mode1(double dl, double dm, double *lr) {
-    double s[5], a[5];
+void mode1(int dl_pwm, int dm_pwm, double *lr) {
+    double s[5], a[5], dl, dm;
     int i;
+    
+    dl = pwm2frac(dl_pwm);
+    dm = pwm2frac(dm_pwm);
     
     for (i=0; i<5; i++) {
         s[i] = D * dm;
@@ -242,4 +257,5 @@ void mode2(double dL, double dl, double dm, double *lr) {
         lr[6+i] = bounds(right(sym[i+1], asym[i]));
     }
 }
+
 
