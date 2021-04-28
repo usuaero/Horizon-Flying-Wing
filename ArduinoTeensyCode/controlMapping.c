@@ -34,6 +34,7 @@ void mode2(double dL, double dl, double dm, double *lr);
 #define TRANS_PWM_MIN 900.0
 #define TRANS_PWM_MAX 2096.0
 #define TRANS_PWM_NOM 1495.0
+#define TRANS_PWM_NOISE 150.0
 
 // main function
 
@@ -168,6 +169,7 @@ double calc_dL(double V, double phi, double p, double climbRate, double theta) {
 }
 
 double pwm2frac(int pwm) {
+    if (pwm > int(TRANS_PWM_MAX + TRANS_PWM_NOISE) || pwm < int(TRANS_PWM_MIN - TRANS_PWM_NOISE)) return 0.0;
     if (pwm > int(TRANS_PWM_MAX)) return 1.0;
     if (pwm < int(TRANS_PWM_MIN)) return -1.0;
     return 2.0 * (double(pwm) - TRANS_PWM_MIN) / (TRANS_PWM_MAX - TRANS_PWM_MIN) - 1.0;
