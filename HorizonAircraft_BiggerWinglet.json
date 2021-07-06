@@ -55,7 +55,7 @@
             "geometry": {
                 "NACA": "2412"
             }
-        }
+        },
         "NACA_0012": {
             "type": "linear",
             "geometry": {
@@ -97,26 +97,45 @@
                 }
             }
         },
-        "BiggerWinglet": {
+        "BiggerWingletBase": {
             "ID": 2,
             "side": "both",
             "is_main": false,
             "connect_to": {
                 "ID": 1
             },
-            "semispan": 0.825,
+            "semispan": 0.2475,
             "sweep": [[0.0, 40.5],
-                      [1.0, 60.0]],
+                      [1.0, 46.35]],
             "dihedral": [[0.0, 10.0],
-                         [0.3, 90.0],
                          [1.0, 90.0]],
             "airfoil": [[0.0, "NACA_2412_fcf56_linearAlpha"],
-                        [0.3, "NACA_0012"],
                         [1.0, "NACA_0012"]],
             "chord": [[0.0, 0.9166666666666666],
+                      [1.0, 0.74716666667]],
+            "grid": {
+                "N": 50,
+                "wing_ID": 0
+            }
+        },
+        "BiggerWinglet": {
+            "ID": 3,
+            "side": "both",
+            "is_main": false,
+            "connect_to": {
+                "ID": 2
+            },
+            "semispan": 0..5775,
+            "sweep": [[0.0, 46.35],
+                      [1.0, 60.0]],
+            "dihedral": [[0.0, 90.0],
+                         [1.0, 90.0]],
+            "airfoil": [[0.0, "NACA_0012"],
+                        [1.0, "NACA_0012"]],
+            "chord": [[0.0, .74716666667],
                       [1.0, 0.3435]],
             "grid": {
-                "N": 10,
+                "N": 20,
                 "wing_ID": 0
             }
         }
