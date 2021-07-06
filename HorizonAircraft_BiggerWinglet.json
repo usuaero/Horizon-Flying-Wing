@@ -55,7 +55,7 @@
             "geometry": {
                 "NACA": "2412"
             }
-        }
+        },
         "NACA_0012": {
             "type": "linear",
             "geometry": {
