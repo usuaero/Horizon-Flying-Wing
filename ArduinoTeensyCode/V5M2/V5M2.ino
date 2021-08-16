@@ -29,7 +29,7 @@
 // include control mapping items
 #include "libraries\controlMapping\controlMapping.h"
 // include running average
-#include "libraries\runningAverage\runningAverage.h"
+#include "libraries\runningAverage\runningAverage.cpp"
 
 // FUNCTIONS USED
 //##########################################################################
