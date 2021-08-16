@@ -1,0 +1,3 @@
+runAvg	KEYWORD1
+update	KEYWORD2
+getAverage	KEYWORD2

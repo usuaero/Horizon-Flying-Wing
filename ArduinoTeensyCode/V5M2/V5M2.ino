@@ -27,9 +27,9 @@
 // library to read in pixhawk data
 #include "ardupilotmega/mavlink.h"
 // include control mapping items
-#include "../libraries/controlMapping/controlMapping.h"
+#include "libraries\controlMapping\controlMapping.h"
 // include running average
-#include "../libraries/runningAverage/runningAverage.h"
+#include "libraries\runningAverage\runningAverage.h"
 
 // FUNCTIONS USED
 //##########################################################################
@@ -94,7 +94,7 @@ double deg[11], servoDeg[11];
 struct telemetryData pix;
 struct pilotCommands pilot;
 // initialize the running average
-runAvg* dL = new runAvg(100, 0.);
+runAvg* dL = new runAvg(200, 0.);
 
 //##########################################################################
 //##########################################################################
@@ -151,9 +151,9 @@ void setup() {
   R1.attach(pR1); 
   R0.attach(pR0); 
   
-  //Serial1.begin(57600);    // TELEM2 from Pixhawk
+  Serial1.begin(57600);    // TELEM2 from Pixhawk
 
-  Serial.begin(9600);
+  // Serial.begin(9600);
   
   //Serial.print("Setup Complete\n");
 
@@ -162,7 +162,6 @@ void setup() {
   pix.bankAngle = 0.;
   pix.elevationAngle = 0.;
   pix.rollRate = 0.;
-
 }
 
 void ReadInPPM(){
@@ -224,7 +223,7 @@ void comm_receive() {
             mavlink_raw_imu_t raw_imu;
             mavlink_msg_raw_imu_decode(&msg, &raw_imu);
             pix.rollRate = raw_imu.xgyro;
-            printVal("roll rate raw: ", raw_imu.xgyro);
+            // printVal("roll rate raw: ", raw_imu.xgyro);
           }
           break;
         // airspeed 
@@ -234,8 +233,8 @@ void comm_receive() {
             mavlink_msg_vfr_hud_decode(&msg, &vfr_hud);
             pix.airspeed = vfr_hud.airspeed;  // m/s
             pix.climbRate = vfr_hud.climb;  // m/s
-            printVal("airspeed: ", vfr_hud.airspeed);
-            printVal("climb rate: ", vfr_hud.climb);
+            // printVal("airspeed: ", vfr_hud.airspeed);
+            // printVal("climb rate: ", vfr_hud.climb);
             
           }
           break;
@@ -246,8 +245,8 @@ void comm_receive() {
             mavlink_msg_attitude_decode(&msg, &attitude);
             pix.bankAngle = attitude.roll;  // rad (-pi..+pi)
             pix.elevationAngle = attitude.pitch;
-            printVal("bank: ", attitude.roll);
-            printVal("elevation: ", attitude.pitch);
+            // printVal("bank: ", attitude.roll);
+            // printVal("elevation: ", attitude.pitch);
             
           }
           break;
@@ -256,12 +255,12 @@ void comm_receive() {
   }
 }
 
-void printVal(char *name, double val) {
-    Serial.print(name);
-    Serial.printf("%20.12f", val);
-    Serial.println();
-    delay(1);
-}
+// void printVal(char *name, double val) {
+    // Serial.print(name);
+    // Serial.printf("%20.12f", val);
+    // Serial.println();
+    // delay(1);
+// }
 
 void debug(){
     int i;
