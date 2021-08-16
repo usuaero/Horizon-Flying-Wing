@@ -235,7 +235,7 @@ void mode2(struct pilotCommands pilot, double dL, double *lr) {
     int i;
     
     CL1   = dL;
-    Cm1   = pwm2frac(pilot.ele) * 0.1;
+    Cm1   = -pwm2frac(pilot.ele) * 0.1;
     pbar1 = pwm2frac(pilot.ail) * 0.2;
     
     CL0 = 1.;
