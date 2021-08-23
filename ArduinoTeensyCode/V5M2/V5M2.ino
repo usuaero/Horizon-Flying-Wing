@@ -45,17 +45,17 @@ void printVal(char *name, double val);
 //##########################################################################
 // deg2servoDeg mapping values
 #define INTERCEPT 90.
-#define SLOPE_L4 1.864
-#define SLOPE_L3 2.1142
-#define SLOPE_L2 2.297
-#define SLOPE_L1 2.3449
-#define SLOPE_L0 2.2934
-#define SLOPE_CE -2.9755
-#define SLOPE_R0 -2.3517
-#define SLOPE_R1 -2.0563
-#define SLOPE_R2 -2.2476
-#define SLOPE_R3 -2.3687
-#define SLOPE_R4 -1.6367
+#define SLOPE_L4 2.1638
+#define SLOPE_L3 2.369
+#define SLOPE_L2 3.2169
+#define SLOPE_L1 2.4064
+#define SLOPE_L0 2.3123
+#define SLOPE_CE -3.0402
+#define SLOPE_R0 -2.2135
+#define SLOPE_R1 -2.0643
+#define SLOPE_R2 -1.7686
+#define SLOPE_R3 -1.9165
+#define SLOPE_R4 -1.6743
 
 // GLOBAL VARIABLES
 //##########################################################################
@@ -130,7 +130,7 @@ void loop() {
   Send2Servo();
   
   // displays values to the serial monitor
-  debug();
+  // debug();
 }
 
 // Launch the serial port in setup
