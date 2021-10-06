@@ -45,17 +45,17 @@ void printVal(char *name, double val);
 //##########################################################################
 // deg2servoDeg mapping values
 #define INTERCEPT 90.
-#define SLOPE_L4 1.864
-#define SLOPE_L3 2.1142
-#define SLOPE_L2 2.297
-#define SLOPE_L1 2.3449
-#define SLOPE_L0 2.2934
-#define SLOPE_CE -2.9755
-#define SLOPE_R0 -2.3517
-#define SLOPE_R1 -2.0563
-#define SLOPE_R2 -2.2476
-#define SLOPE_R3 -2.3687
-#define SLOPE_R4 -1.6367
+#define SLOPE_L4 1.8799
+#define SLOPE_L3 1.8292
+#define SLOPE_L2 1.8172
+#define SLOPE_L1 2.0489
+#define SLOPE_L0 2.2903
+#define SLOPE_CE -3.9204
+#define SLOPE_R0 -2.1827
+#define SLOPE_R1 -1.8685
+#define SLOPE_R2 -1.7276
+#define SLOPE_R3 -1.5998
+#define SLOPE_R4 -1.5668
 
 // GLOBAL VARIABLES
 //##########################################################################
