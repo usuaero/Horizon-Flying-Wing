@@ -45,17 +45,17 @@ void printVal(char *name, double val);
 //##########################################################################
 // deg2servoDeg mapping values
 #define INTERCEPT 90.
-#define SLOPE_L4 1.8799
-#define SLOPE_L3 1.8292
-#define SLOPE_L2 1.8172
-#define SLOPE_L1 2.0489
-#define SLOPE_L0 2.2903
-#define SLOPE_CE -3.9204
-#define SLOPE_R0 -2.1827
-#define SLOPE_R1 -1.8685
-#define SLOPE_R2 -1.7276
-#define SLOPE_R3 -1.5998
-#define SLOPE_R4 -1.5668
+#define SLOPE_L4 1.7093
+#define SLOPE_L3 1.5384
+#define SLOPE_L2 1.7961
+#define SLOPE_L1 1.7799
+#define SLOPE_L0 1.9429
+#define SLOPE_CE -3.5752
+#define SLOPE_R0 -2.0551
+#define SLOPE_R1 -1.7414
+#define SLOPE_R2 -1.6435
+#define SLOPE_R3 -1.5585
+#define SLOPE_R4 -1.5637
 
 // GLOBAL VARIABLES
 //##########################################################################
@@ -231,7 +231,7 @@ void comm_receive() {
           {
             mavlink_vfr_hud_t vfr_hud;
             mavlink_msg_vfr_hud_decode(&msg, &vfr_hud);
-            pix.airspeed = vfr_hud.airspeed;  // m/s
+            pix.airspeed = vfr_hud.groundspeed;  // m/s
             pix.climbRate = vfr_hud.climb;  // m/s
             // printVal("airspeed: ", vfr_hud.airspeed);
             // printVal("climb rate: ", vfr_hud.climb);
