@@ -230,7 +230,7 @@ void mode1(struct pilotCommands in, double *lr) {
 void mode2(struct pilotCommands pilot, double dL, double *lr) {
     double C, R[5], L[5];
     double CL0, CL1, CL2, CL3, CL4, CL5;
-    double Cm0, Cm1, Cm2, Cm3, Cm4, Cm5 Cm6;
+    double Cm0, Cm1, Cm2, Cm3, Cm4, Cm5, Cm6;
     double pbar0, pbar1, pbar2, pbar3, pbar4, pbar5, pbar6, pbar7;
     int i;
     
