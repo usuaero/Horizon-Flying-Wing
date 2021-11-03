@@ -26,8 +26,8 @@ void mode2(struct pilotCommands pilot, double dL, double *lr);
 
 // constants
 // #define PI 3.14159265               // pi
-#define G 32.174                    // acceleration due to gravity (ft/sec^2)
-#define RHO 0.0020482               // density of air (slugs/ft^3)
+#define G 9.81                      // acceleration due to gravity (m/sec^2)
+#define RHO 0.78                    // density of air (kg/m^3)
 // control parameters
 #define D 20.0                      // max deflection of any given control surface (deg)
 #define DL_MAX 0.9                  // max acceptable value for dL

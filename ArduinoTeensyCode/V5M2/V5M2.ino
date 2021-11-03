@@ -94,7 +94,7 @@ double deg[11], servoDeg[11];
 struct telemetryData pix;
 struct pilotCommands pilot;
 // initialize the running average
-runAvg* dL = new runAvg(200, 0.);
+runAvg* dL = new runAvg(3000, 0.);
 
 //##########################################################################
 //##########################################################################
@@ -232,12 +232,12 @@ void comm_receive() {
           {
             mavlink_vfr_hud_t vfr_hud;
             mavlink_msg_vfr_hud_decode(&msg, &vfr_hud);
-            if (pilot.speed > TRANS_PWM_NOM + TRANS_PWM_NOISE) {
-              pix.airspeed = vfr_hud.groundspeed;  // m/s
-            }
-            else {
+//            if (pilot.speed > TRANS_PWM_NOM + TRANS_PWM_NOISE) {
+//              pix.airspeed = vfr_hud.groundspeed;  // m/s
+//            }
+//            else {
               pix.airspeed = vfr_hud.airspeed;  // m/s
-            }
+//            }
             pix.climbRate = vfr_hud.climb;  // m/s
             // printVal("airspeed: ", vfr_hud.airspeed);
             // printVal("climb rate: ", vfr_hud.climb);
