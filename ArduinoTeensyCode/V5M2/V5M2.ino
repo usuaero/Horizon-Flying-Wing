@@ -130,7 +130,7 @@ void loop() {
   Send2Servo();
   
   // displays values to the serial monitor
-  debug();
+  // debug();
 }
 
 // Launch the serial port in setup
@@ -172,6 +172,7 @@ void ReadInPPM(){
   pilot.rud = DLRXinput.read(4);  // yaw - ignore Mode 1
   // we will need to read in one more channel, likely a 2 or 3 way switch so that the pilot can change modes as desired
   pilot.modeSwitch = DLRXinput.read(5);
+  pilot.speed = DLRXinput.read(7);
 }
 
 void deg2servoDeg(){
@@ -231,7 +232,12 @@ void comm_receive() {
           {
             mavlink_vfr_hud_t vfr_hud;
             mavlink_msg_vfr_hud_decode(&msg, &vfr_hud);
-            pix.airspeed = vfr_hud.groundspeed;  // m/s
+            if (pilot.speed > TRANS_PWM_NOM + TRANS_PWM_NOISE) {
+              pix.airspeed = vfr_hud.groundspeed;  // m/s
+            }
+            else {
+              pix.airspeed = vfr_hud.airspeed;  // m/s
+            }
             pix.climbRate = vfr_hud.climb;  // m/s
             // printVal("airspeed: ", vfr_hud.airspeed);
             // printVal("climb rate: ", vfr_hud.climb);

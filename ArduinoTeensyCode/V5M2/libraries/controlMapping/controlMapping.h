@@ -34,8 +34,8 @@ void mode2(struct pilotCommands pilot, double dL, double *lr);
 #define DL_MIN 0.1                  // mIN acceptable value for dL
 #define PSCT_GAIN 4.0               // tunable gain on the SCT criteria for the calcCL2 function
 // aircraft properties
-#define W 20.0                      // weight of aircraft (lbf)             ====THIS NEEDS TO BE UPDATED====
-#define S 12.29923797666569         // planform area of main wing (ft^2)
+#define W 97.86                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
+#define S 1.14                      // planform area of main wing (m^2)
 #define B 9.91936999529998          // wingspan (ft)
 // transmitter values
 #define TRANS_PWM_MIN 900.0
@@ -56,6 +56,7 @@ struct pilotCommands {
     int ele;
     int rud;
     int modeSwitch;
+    int speed;
 };
 
 /* main function
@@ -231,12 +232,12 @@ void mode2(struct pilotCommands pilot, double dL, double *lr) {
     double C, R[5], L[5];
     double CL0, CL1, CL2, CL3, CL4, CL5;
     double Cm0, Cm1, Cm2, Cm3, Cm4, Cm5, Cm6;
-    double pbar0, pbar1, pbar2, pbar3, pbar4, pbar5, pbar6, pbar7;
+    double pbar0, pbar1, pbar2, pbar3, pbar4, pbar5, pbar6;
     int i;
     
     CL1   = dL;
-    Cm1   = -pwm2frac(pilot.ele) * 0.1;
-    pbar1 = pwm2frac(pilot.ail) * 0.2;
+    Cm1   = -pwm2frac(pilot.ele) * 0.3;
+    pbar1 = -pwm2frac(pilot.ail) * 0.2;
     
     CL0 = 1.;
     CL2 = CL1 * CL1;
