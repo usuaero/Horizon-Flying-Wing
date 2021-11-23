@@ -34,7 +34,7 @@ void mode2(struct pilotCommands pilot, double dL, double *lr);
 #define DL_MIN 0.1                  // mIN acceptable value for dL
 #define PSCT_GAIN 4.0               // tunable gain on the SCT criteria for the calcCL2 function
 // aircraft properties
-#define W 97.86                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
+#define W 97.09                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
 #define S 1.14                      // planform area of main wing (m^2)
 #define B 9.91936999529998          // wingspan (ft)
 // transmitter values

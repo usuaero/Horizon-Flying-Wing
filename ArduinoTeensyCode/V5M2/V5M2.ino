@@ -30,6 +30,8 @@
 #include "libraries\controlMapping\controlMapping.h"
 // include running average
 #include "libraries\runningAverage\runningAverage.cpp"
+#include <SD.h>
+#include <SPI.h>
 
 // FUNCTIONS USED
 //##########################################################################
@@ -57,6 +59,11 @@ void printVal(char *name, double val);
 #define SLOPE_R3 -1.5585
 #define SLOPE_R4 -1.5637
 
+// Global Constants for SD Card Logging
+const int chipSelect = 10;
+File logfile;
+
+
 // GLOBAL VARIABLES
 //##########################################################################
 // Create the PPM input variable - read on FALLING edge
@@ -78,11 +85,11 @@ int pL4 = 2;
 Servo Ce;
 int pC = 7;
 Servo R4;
-int pR4 = 12;
+int pR4 = 19;
 Servo R3;
-int pR3 = 11;
+int pR3 = 18;
 Servo R2;
-int pR2 = 10;
+int pR2 = 15;
 Servo R1;
 int pR1 = 9;
 Servo R0;
@@ -135,8 +142,47 @@ void loop() {
 
 // Launch the serial port in setup
 void setup() {
-  
-  DLRXinput.begin(13); //signal from RX must be connected to pin 13
+    Serial.print("Initializing SD card...");
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+    // open the file. 
+  logfile = SD.open("log.txt", FILE_WRITE);
+
+  //logfile = SD.open("test.txt", FILE_WRITE);
+  //// if the file opened okay, write to it:
+  //if (logfile) {
+  //  Serial.print("Writing to test.txt...");
+  //  logfile.print("testing 1, 2, 3.\n");
+  //// close the file:
+  //  logfile.close();
+  //  Serial.println("done.");
+  //} else {
+  //  // if the file didn't open, print an error:
+  //  Serial.println("error opening test.txt");
+  //}
+  //
+  //// re-open the file for reading:
+  //logfile = SD.open("test.txt");
+  //if (logfile) {
+  //  Serial.println("test.txt:");
+  //  
+  //  // read from the file until there's nothing else in it:
+  //  while (logfile.available()) {
+  //    Serial.write(logfile.read());
+  //  }
+  //  // close the file:
+  //  logfile.close();
+  //} else {
+  //  // if the file didn't open, print an error:
+  //  Serial.println("error opening test.txt");
+  //}
+
+  DLRXinput.begin(22); //signal from RX must be connected to pin 13
 
   Thrust.attach(pThr);
   L0.attach(pL0);
@@ -191,6 +237,7 @@ void deg2servoDeg(){
 
 void Send2Servo(){
   // individually sends out servo commands - PWM signal
+  
   L4.write(servoDeg[0]);
   L3.write(servoDeg[1]);
   L2.write(servoDeg[2]);
@@ -202,6 +249,41 @@ void Send2Servo(){
   R2.write(servoDeg[8]);
   R3.write(servoDeg[9]);
   R4.write(servoDeg[10]);
+  logfile = SD.open("log.txt", FILE_WRITE);
+  logfile.print("L4: ");
+  logfile.print(servoDeg[0]);
+  logfile.print("deg \n");
+  logfile.print("L3: ");
+  logfile.print(servoDeg[1]);
+  logfile.print("deg \n");
+  logfile.print("L2: ");
+  logfile.print(servoDeg[2]);
+  logfile.print("deg \n");
+  logfile.print("L1: ");
+  logfile.print(servoDeg[3]);
+  logfile.print("deg \n");
+  logfile.print("L0: ");
+  logfile.print(servoDeg[4]);
+  logfile.print("deg \n");
+  logfile.print("Ce: ");
+  logfile.print(servoDeg[5]);
+  logfile.print("deg \n");
+  logfile.print("R0: ");
+  logfile.print(servoDeg[6]);
+  logfile.print("deg \n");
+  logfile.print("R1: ");
+  logfile.print(servoDeg[7]);
+  logfile.print("deg \n");
+  logfile.print("R2: ");
+  logfile.print(servoDeg[8]);
+  logfile.print("deg \n");
+  logfile.print("R3: ");
+  logfile.print(servoDeg[9]);
+  logfile.print("deg \n");
+  logfile.print("R4: ");
+  logfile.print(servoDeg[10]);
+  logfile.print("deg \n");
+  logfile.close();
 }
 
 void comm_receive() {
