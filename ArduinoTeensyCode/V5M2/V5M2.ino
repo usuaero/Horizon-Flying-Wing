@@ -62,6 +62,8 @@ void printVal(char *name, double val);
 // Global Constants for SD Card Logging
 const int chipSelect = 10;
 File logfile;
+// name of the log file stored to the SD card
+char name[] = "hubertNOTdorothy.txt";
 
 
 // GLOBAL VARIABLES
@@ -85,7 +87,7 @@ int pL4 = 2;
 Servo Ce;
 int pC = 7;
 Servo R4;
-int pR4 = 19;
+int pR4 = 23;
 Servo R3;
 int pR3 = 18;
 Servo R2;
@@ -109,6 +111,7 @@ runAvg* dL = new runAvg(3000, 0.);
 
 void loop() {
   //int i;
+//  logfile = SD.open("log.txt", FILE_WRITE);
   
   // 1) Read in the PPM signal & convert to 4 PWM signals
   ReadInPPM();
@@ -137,7 +140,8 @@ void loop() {
   Send2Servo();
   
   // displays values to the serial monitor
-  // debug();
+  debug();
+//  logfile.close();
 }
 
 // Launch the serial port in setup
@@ -151,38 +155,11 @@ void setup() {
   Serial.println("initialization done.");
 
     // open the file. 
-  logfile = SD.open("log.txt", FILE_WRITE);
+  logfile = SD.open(name, FILE_WRITE);
+  logfile.print("Initializing Complete\n");
+  logfile.close();
 
-  //logfile = SD.open("test.txt", FILE_WRITE);
-  //// if the file opened okay, write to it:
-  //if (logfile) {
-  //  Serial.print("Writing to test.txt...");
-  //  logfile.print("testing 1, 2, 3.\n");
-  //// close the file:
-  //  logfile.close();
-  //  Serial.println("done.");
-  //} else {
-  //  // if the file didn't open, print an error:
-  //  Serial.println("error opening test.txt");
-  //}
-  //
-  //// re-open the file for reading:
-  //logfile = SD.open("test.txt");
-  //if (logfile) {
-  //  Serial.println("test.txt:");
-  //  
-  //  // read from the file until there's nothing else in it:
-  //  while (logfile.available()) {
-  //    Serial.write(logfile.read());
-  //  }
-  //  // close the file:
-  //  logfile.close();
-  //} else {
-  //  // if the file didn't open, print an error:
-  //  Serial.println("error opening test.txt");
-  //}
-
-  DLRXinput.begin(22); //signal from RX must be connected to pin 13
+  DLRXinput.begin(19); //signal from RX must be connected to pin 23
 
   Thrust.attach(pThr);
   L0.attach(pL0);
@@ -219,6 +196,18 @@ void ReadInPPM(){
   // we will need to read in one more channel, likely a 2 or 3 way switch so that the pilot can change modes as desired
   pilot.modeSwitch = DLRXinput.read(5);
   pilot.speed = DLRXinput.read(7);
+//  logfile = SD.open("benchtest2.txt", FILE_WRITE);
+//  logfile.print("-------------PILOT INPUTS-----------------------\n");
+//  logfile.print("Aileron Command: ");
+//  logfile.print(pilot.ail);
+//  logfile.print("\n");
+//  logfile.print("Elevator Command: ");
+//  logfile.print(pilot.ele);
+//  logfile.print("\n");
+//  logfile.print("Rudder Command: ");
+//  logfile.print(pilot.rud);
+//  logfile.print("\n");
+//  logfile.close();
 }
 
 void deg2servoDeg(){
@@ -249,41 +238,42 @@ void Send2Servo(){
   R2.write(servoDeg[8]);
   R3.write(servoDeg[9]);
   R4.write(servoDeg[10]);
-  logfile = SD.open("log.txt", FILE_WRITE);
-  logfile.print("L4: ");
-  logfile.print(servoDeg[0]);
-  logfile.print("deg \n");
-  logfile.print("L3: ");
-  logfile.print(servoDeg[1]);
-  logfile.print("deg \n");
-  logfile.print("L2: ");
-  logfile.print(servoDeg[2]);
-  logfile.print("deg \n");
-  logfile.print("L1: ");
-  logfile.print(servoDeg[3]);
-  logfile.print("deg \n");
-  logfile.print("L0: ");
-  logfile.print(servoDeg[4]);
-  logfile.print("deg \n");
-  logfile.print("Ce: ");
-  logfile.print(servoDeg[5]);
-  logfile.print("deg \n");
-  logfile.print("R0: ");
-  logfile.print(servoDeg[6]);
-  logfile.print("deg \n");
-  logfile.print("R1: ");
-  logfile.print(servoDeg[7]);
-  logfile.print("deg \n");
-  logfile.print("R2: ");
-  logfile.print(servoDeg[8]);
-  logfile.print("deg \n");
-  logfile.print("R3: ");
-  logfile.print(servoDeg[9]);
-  logfile.print("deg \n");
-  logfile.print("R4: ");
-  logfile.print(servoDeg[10]);
-  logfile.print("deg \n");
-  logfile.close();
+//  logfile = SD.open("benchtest2.txt", FILE_WRITE);
+//  logfile.print("-------------SERVO OUTPUTS-----------------------\n");
+//  logfile.print("L4: ");
+//  logfile.print(servoDeg[0]);
+//  logfile.print("deg \n");
+//  logfile.print("L3: ");
+//  logfile.print(servoDeg[1]);
+//  logfile.print("deg \n");
+//  logfile.print("L2: ");
+//  logfile.print(servoDeg[2]);
+//  logfile.print("deg \n");
+//  logfile.print("L1: ");
+//  logfile.print(servoDeg[3]);
+//  logfile.print("deg \n");
+//  logfile.print("L0: ");
+//  logfile.print(servoDeg[4]);
+//  logfile.print("deg \n");
+//  logfile.print("Ce: ");
+//  logfile.print(servoDeg[5]);
+//  logfile.print("deg \n");
+//  logfile.print("R0: ");
+//  logfile.print(servoDeg[6]);
+//  logfile.print("deg \n");
+//  logfile.print("R1: ");
+//  logfile.print(servoDeg[7]);
+//  logfile.print("deg \n");
+//  logfile.print("R2: ");
+//  logfile.print(servoDeg[8]);
+//  logfile.print("deg \n");
+//  logfile.print("R3: ");
+//  logfile.print(servoDeg[9]);
+//  logfile.print("deg \n");
+//  logfile.print("R4: ");
+//  logfile.print(servoDeg[10]);
+//  logfile.print("deg \n");
+//  logfile.close();
 }
 
 void comm_receive() {
@@ -352,35 +342,36 @@ void comm_receive() {
 
 void debug(){
     int i;
+    logfile = SD.open(name, FILE_WRITE);
+    logfile.print("pilotCommands, ");
+    logfile.printf("%4u", pilot.ail);
+    logfile.print(", ");
+    logfile.printf("%4u",pilot.ele);
+    logfile.print(", ");
+    logfile.printf("%4u",pilot.rud);
+    logfile.print(", ");
+    logfile.printf("%4u",pilot.modeSwitch);
+    logfile.print(", ");
     
-    Serial.print("pilotCommands: ");
-    Serial.printf("%4u", pilot.ail);
-    Serial.print(", ");
-    Serial.printf("%4u",pilot.ele);
-    Serial.print(", ");
-    Serial.printf("%4u",pilot.rud);
-    Serial.print(", ");
-    Serial.printf("%4u",pilot.modeSwitch);
-    Serial.print(", ");
+    logfile.print(" pixhawk, ");
+    logfile.printf("%6.2f", pix.airspeed);
+    logfile.print(", ");
+    logfile.printf("%6.2f", pix.climbRate);
+    logfile.print(", ");
+    logfile.printf("%6.2f", pix.bankAngle);
+    logfile.print(", ");
+    logfile.printf("%6.2f", pix.elevationAngle);
+    logfile.print(", ");
+    logfile.printf("%6.2f", pix.rollRate);
+    logfile.print(", ");
+    logfile.printf("%5.3f", dL->getAverage());
+    logfile.print(", ");
     
-    Serial.print(" pixhawk: ");
-    Serial.printf("%6.2f", pix.airspeed);
-    Serial.print(", ");
-    Serial.printf("%6.2f", pix.climbRate);
-    Serial.print(", ");
-    Serial.printf("%6.2f", pix.bankAngle);
-    Serial.print(", ");
-    Serial.printf("%6.2f", pix.elevationAngle);
-    Serial.print(", ");
-    Serial.printf("%6.2f", pix.rollRate);
-    Serial.print(", ");
-    Serial.printf("%5.3f", dL->getAverage());
-    Serial.print(", ");
-    
-    Serial.print(" degrees: ");
+    logfile.print(" degrees, ");
     for (i=0; i<11; i++){
-        Serial.printf("%6.2f", deg[i]);
-        Serial.print(", ");
+        logfile.printf("%6.2f", deg[i]);
+        logfile.print(", ");
     }
-    Serial.println();
+    logfile.println();
+    logfile.close();
 }
