@@ -33,6 +33,7 @@ void mode2(struct pilotCommands pilot, double dL, double *lr);
 #define DL_MAX 0.9                  // max acceptable value for dL
 #define DL_MIN 0.1                  // mIN acceptable value for dL
 #define PSCT_GAIN 4.0               // tunable gain on the SCT criteria for the calcCL2 function
+#define m1_pitchTrim 0.05           // % uptrim needed for mode 1
 // aircraft properties
 #define W 97.09                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
 #define S 1.14                      // planform area of main wing (m^2)
@@ -212,6 +213,12 @@ void mode1(struct pilotCommands in, double *lr) {
     
     dl = pwm2frac(in.ail);
     dm = pwm2frac(in.ele);
+    
+    if (dm >= 0.0) {
+        dm = m1_pitchTrim + dm * (1.0 - m1_pitchTrim);
+    } else {
+        dm = m1_pitchTrim + dm * (1.0 + m1_pitchTrim);
+    }
     
     for (i=0; i<5; i++) {
         s[i] = D * dm;

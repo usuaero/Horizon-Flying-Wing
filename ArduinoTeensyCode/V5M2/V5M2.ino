@@ -48,6 +48,9 @@ void comm_receive();
 void checkSRXL2();
 void initializeSD();
 
+void blend(double dL, struct pilotCommands in, double b, double *degDefl);
+#define BlendFactor 6.6666666666666667e-05            // five second blend term
+
 #define Pixport Serial4
 
 // define the global constants (they are all in uppercase for ease of identifying)
@@ -131,6 +134,7 @@ struct pilotCommands pilot;
 runAvg* dL = new runAvg(3000, 0.);
 const int mode_1_runAvg_loops = 1;
 const int mode_2_runAvg_loops = 1;
+double b=0.0;
 
 // initialize counter for running average
 int k = 0;
@@ -225,12 +229,20 @@ void loop() {
   // check for the mode
   if (pilot.modeSwitch < TRANS_PWM_NOM) {
     mode1(pilot, deg);
+    b = 0.0;
   }
   //else if (pilot.modeSwitch < ?) {
      //implement a third mode
   //}
   else {
-    mode2(pilot, dL->getAverage(), deg);
+    if (b < 1.0) {
+        b += BlendFactor;
+        if (b > 1.0) {b = 1.0;}
+        blend(dL->getAverage(), pilot, b, deg);
+    }
+    else {
+        mode2(pilot, dL->getAverage(), deg);
+    }
   }
   
   // convert degrees control surface deflection to degrees servo arm deflection
@@ -255,6 +267,29 @@ void loop() {
 //    }
 //  }
  
+}
+
+void blend(double dL, struct pilotCommands in, double b, double *degDefl) {
+    /*
+     * inputs
+     * ======
+     * dL -> current value of the running average for CL estimate
+     * in -> pilot commands
+     * b  -> blend parameter
+     * outputs
+     * =======
+     * degDefl -> array of degrees deflection across horizon
+     */
+    // declare variables
+    double m1[11], m2[11];
+    int i;
+    // compute mode 1 and 2 deflections
+    mode1(in, m1);
+    mode2(in, dL, m2);
+    // compute output of blended values
+    for (i=0; i<11; i++) {
+        degDefl[i] = (m2[i] - m1[i]) * b + m1[i];
+    }
 }
 
 void initializeSD() {
