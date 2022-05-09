@@ -1,0 +1,8 @@
+void loop() {
+  
+  // convert degrees control surface deflection to degrees servo arm deflection
+  deg2servoDeg();
+  
+  // send out the individual PWM signals
+  Send2Servo();
+}

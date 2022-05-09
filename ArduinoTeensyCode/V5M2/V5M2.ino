@@ -22,8 +22,10 @@
 //##########################################################################
 // Servo Library -- to control each servo/ send out individual PWM signals
 #include "Servo.h"
-// PulsePosition Library -- to read in / interpret the PPM signal 
-#include <PulsePosition.h>
+//// PulsePosition Library -- to read in / interpret the PPM signal 
+//#include <PulsePosition.h>
+// SRXL2 Library -- to read in / interpret SRXL2 signal
+#include "spm_srxl.h"
 // library to read in pixhawk data
 #include "ardupilotmega/mavlink.h"
 // include control mapping items
@@ -32,44 +34,67 @@
 #include "libraries\runningAverage\runningAverage.cpp"
 #include <SD.h>
 #include <SPI.h>
+#include <inttypes.h>
 
 // FUNCTIONS USED
 //##########################################################################
 // Sabrina's functions
-void ReadInPPM();
+//void ReadInPPM();
 void deg2servoDeg();
+void defDefl_2_degServo(double *defl, double *serv);
 void Send2Servo();
-void debug();
+void Write2Card();
 void comm_receive();
-void printVal(char *name, double val);
+void checkSRXL2();
+void initializeSD();
+
+#define Pixport Serial4
 
 // define the global constants (they are all in uppercase for ease of identifying)
 //##########################################################################
 // deg2servoDeg mapping values
 #define INTERCEPT 90.
-#define SLOPE_L4 1.7093
-#define SLOPE_L3 1.5384
-#define SLOPE_L2 1.7961
-#define SLOPE_L1 1.7799
-#define SLOPE_L0 1.9429
-#define SLOPE_CE -3.5752
-#define SLOPE_R0 -2.0551
-#define SLOPE_R1 -1.7414
-#define SLOPE_R2 -1.6435
-#define SLOPE_R3 -1.5585
-#define SLOPE_R4 -1.5637
+#define SLOPE_L4 1.8683385580
+#define SLOPE_L3 1.8881396271
+#define SLOPE_L2 1.8718415201
+#define SLOPE_L1 1.8768560681
+#define SLOPE_L0 2.2508591065
+#define SLOPE_CE -3.8012820513
+#define SLOPE_R0 -2.0861405197
+#define SLOPE_R1 -1.9586296057
+#define SLOPE_R2 -2.0307048151
+#define SLOPE_R3 -1.8913857678
+#define SLOPE_R4 -1.6026105874
 
 // Global Constants for SD Card Logging
 const int chipSelect = 10;
 File logfile;
 // name of the log file stored to the SD card
-char name[] = "hubertNOTdorothy.txt";
+char name[11]; // "TLg999.txt"
+const int mode_1_write_loops = 18000;
+const int mode_2_write_loops =  1000;
+int file_number = 0;
 
+// Values for SRXL2
+#define SRXL2_PORT_BAUDRATE_DEFAULT 115200
+#define SRXL2_FRAME_TIMEOUT 22 
+#define srxl2port Serial1
+unsigned long currentTime;
+
+// Spektrum channel order
+#define THRO 0
+#define AILE 1
+#define ELEV 2
+#define RUDD 3
+#define MOSW 4
+#define AUX1 5
+#define AUX2 6
+#define AUX3 7
 
 // GLOBAL VARIABLES
 //##########################################################################
-// Create the PPM input variable - read on FALLING edge
-PulsePositionInput DLRXinput(FALLING);
+//// Create the PPM input variable - read on FALLING edge
+//PulsePositionInput DLRXinput(FALLING);
 // Define 12 Servo instances & their corresponding pin on the Teensy
 // 11 servos & 1 motor (signal split to both motors)
 Servo Thrust;
@@ -87,7 +112,7 @@ int pL4 = 2;
 Servo Ce;
 int pC = 7;
 Servo R4;
-int pR4 = 23;
+int pR4 = 19;
 Servo R3;
 int pR3 = 18;
 Servo R2;
@@ -104,62 +129,43 @@ struct telemetryData pix;
 struct pilotCommands pilot;
 // initialize the running average
 runAvg* dL = new runAvg(3000, 0.);
+const int mode_1_runAvg_loops = 1;
+const int mode_2_runAvg_loops = 1;
+
+// initialize counter for running average
+int k = 0;
+// initialize counter for writing to card
+int j = 0;
+
+int ThrustPWM = 1024; // variable to store the PWM Throttle position 
+double SRXL2scale = 1400.0 / 2048.0; 
+int SRXL2offset = 1500 - int(double(1024) * SRXL2scale);
+bool SD_card_not_initialized = true;
+
+int counter = 0;
+int counter_max = 50000;
+int counter2 = 0;
 
 //##########################################################################
 //##########################################################################
 //##########################################################################
 
-void loop() {
-  //int i;
-//  logfile = SD.open("log.txt", FILE_WRITE);
-  
-  // 1) Read in the PPM signal & convert to 4 PWM signals
-  ReadInPPM();
-  
-  // read in pixhawk data
-  comm_receive();
-  
-  // update dL
-  dL->update(calc_dL(pix));
-  
-  // check for the mode
-  if (pilot.modeSwitch < TRANS_PWM_NOM) {
-    mode1(pilot, deg);
-  }
-  //else if (pilot.modeSwitch < ?) {
-     //implement a third mode
-  //}
-  else {
-    mode2(pilot, dL->getAverage(), deg);
-  }
-  
-  // convert degrees control surface deflection to degrees servo arm deflection
-  deg2servoDeg();
-  
-  // send out the individual PWM signals
-  Send2Servo();
-  
-  // displays values to the serial monitor
-  debug();
-//  logfile.close();
-}
-
-// Launch the serial port in setup
-void setup() {
-    Serial.print("Initializing SD card...");
-
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed!");
+void setup()
+{
+//  Serial.begin(9600);
+  // set up SRXL2
+  srxl2port.begin(SRXL2_PORT_BAUDRATE_DEFAULT);
+  if (!srxlInitDevice(SRXL_DEVICE_ID, SRXL_DEVICE_PRIORITY, SRXL_DEVICE_INFO, 0x01000001)) {
+    Serial.println("SRXL2 Device initialization failed");
     return;
   }
-  Serial.println("initialization done.");
-
-    // open the file. 
-  logfile = SD.open(name, FILE_WRITE);
-  logfile.print("Initializing Complete\n");
-  logfile.close();
-
-  DLRXinput.begin(19); //signal from RX must be connected to pin 23
+  if (!srxlInitBus(0, 1, SRXL_SUPPORTED_BAUD_RATES)) {
+    Serial.println("SRXL2 Bus initialization failed");
+    return;
+  }
+  else {
+    Serial.println("SRXL2 initialized");
+  }
 
   Thrust.attach(pThr);
   L0.attach(pL0);
@@ -174,41 +180,168 @@ void setup() {
   R1.attach(pR1); 
   R0.attach(pR0); 
   
-  Serial1.begin(57600);    // TELEM2 from Pixhawk
-
-  // Serial.begin(9600);
+  Pixport.begin(57600);    // TELEM2 from Pixhawk
   
-  //Serial.print("Setup Complete\n");
+  Serial.println("Setup Complete");
 
-  pix.airspeed = 16.5;
+  // initialize pix struct values
+  pix.airspeed = 20.5;
   pix.climbRate = 0.;
   pix.bankAngle = 0.;
   pix.elevationAngle = 0.;
   pix.rollRate = 0.;
+  pix.time_msec = 0;
+
+  // initialize pilot struct values
+  pilot.ail = 1500;
+  pilot.ele = 1500;
+  pilot.rud = 1500;
+  pilot.modeSwitch = 800;
+}
+void loop() {
+
+  // 1) Read in the SRXL2 signal & convert to 5 PWM signals
+  checkSRXL2();
+  
+  // read in pixhawk data
+  comm_receive();
+
+  // update dL
+//  k = k+1;
+//  if (pilot.modeSwitch < TRANS_PWM_NOM) { // in mode 1
+//    if (k >= mode_1_runAvg_loops) {
+//      dL->update(calc_dL(pix));
+//      k = 0;
+//    }
+//  }
+//  else { // in mode 2
+//    if (k >= mode_2_runAvg_loops) {
+//      dL->update(calc_dL(pix));
+//      k = 0;
+//    }
+//  }
+  dL->update(calc_dL(pix));
+  
+  // check for the mode
+  if (pilot.modeSwitch < TRANS_PWM_NOM) {
+    mode1(pilot, deg);
+  }
+  //else if (pilot.modeSwitch < ?) {
+     //implement a third mode
+  //}
+  else {
+    mode2(pilot, dL->getAverage(), deg);
+  }
+  
+  // convert degrees control surface deflection to degrees servo arm deflection
+//  deg2servoDeg();
+  defDefl_2_degServo(deg, servoDeg);
+  
+  // send out the individual PWM signals
+  Send2Servo();
+  
+//  // write values to attached SD card
+//  j = j+1;
+//  if (pilot.modeSwitch < TRANS_PWM_NOM) { // in mode 1
+//    if (j >= mode_1_write_loops) {
+//      Write2Card();
+//      j = 0;
+//    }
+//  }
+//  else { // in mode 2
+//    if (j >= mode_2_write_loops) {
+//      Write2Card();
+//      j = 0;
+//    }
+//  }
+ 
 }
 
-void ReadInPPM(){
-  // read in the PWM channels from the RX PPM signal
-  pilot.ail = DLRXinput.read(1);  // roll - delta l
-  pilot.ele = DLRXinput.read(2);  // pitch - delta m
-  Thrust.write( DLRXinput.read(3) );  // motor - pass through directly 
-  pilot.rud = DLRXinput.read(4);  // yaw - ignore Mode 1
-  // we will need to read in one more channel, likely a 2 or 3 way switch so that the pilot can change modes as desired
-  pilot.modeSwitch = DLRXinput.read(5);
-  pilot.speed = DLRXinput.read(7);
-//  logfile = SD.open("benchtest2.txt", FILE_WRITE);
-//  logfile.print("-------------PILOT INPUTS-----------------------\n");
-//  logfile.print("Aileron Command: ");
-//  logfile.print(pilot.ail);
-//  logfile.print("\n");
-//  logfile.print("Elevator Command: ");
-//  logfile.print(pilot.ele);
-//  logfile.print("\n");
-//  logfile.print("Rudder Command: ");
-//  logfile.print(pilot.rud);
-//  logfile.print("\n");
-//  logfile.close();
+void initializeSD() {
+  // set up SD card
+  Serial.println("Initializing SD card...");
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+  // Determine file name for most recent file
+  // check to see if "full", otherwise continue
+  if (SD.exists("TLg999.txt")) {
+    return;
+  }
+  // for loop, check root.exists(filename), update filename, run till false
+  for (file_number=0; file_number <= 999; file_number++){
+      snprintf(name,sizeof(name),"TLg%03d.txt",file_number);
+      if (SD.exists(name)) {
+        continue;
+      }
+      else {
+        break;
+      }
+  }
+    // open the file.
+  logfile = SD.open(name, FILE_WRITE);
+  logfile.print("Initializing Complete\n");
+  logfile.close();
 }
+
+void checkSRXL2() {
+  currentTime = millis();
+
+  static unsigned long prevSerialRxTime = 0;
+
+  // UART receive buffer
+  static uint8_t rxBuffer[2 * SRXL_MAX_BUFFER_SIZE];
+  static uint8_t rxBufferIndex = 0;
+
+  if (currentTime - prevSerialRxTime > SRXL2_FRAME_TIMEOUT)
+  {
+    prevSerialRxTime = currentTime;
+    rxBufferIndex = 0;
+    srxlRun(0, SRXL2_FRAME_TIMEOUT);
+  }
+
+  if ( srxl2port.available() )
+  {
+    prevSerialRxTime = currentTime;
+    unsigned char c = srxl2port.read(); // 
+    rxBuffer[rxBufferIndex++] = c;
+  }
+
+  if (rxBufferIndex >= 5)
+  {
+    if(rxBuffer[0] == SPEKTRUM_SRXL_ID)
+    {
+      uint8_t packetLength = rxBuffer[2];
+      if (rxBufferIndex >= packetLength)
+      {
+        // Try to parse SRXL packet -- this internally calls srxlRun() after packet is parsed and reset timeout
+        if (srxlParsePacket(0, rxBuffer, packetLength))
+        {
+          // Move any remaining bytes to beginning of buffer (usually 0)
+          rxBufferIndex -= packetLength;
+          memmove(rxBuffer, &rxBuffer[packetLength], rxBufferIndex);
+        }
+        else
+        {
+            rxBufferIndex = 0;
+        }
+      }
+    }
+  }
+}
+
+//void ReadInPPM(){
+//  // read in the PWM channels from the RX PPM signal
+//  pilot.ail = DLRXinput.read(2);  // roll - delta l  2 new, 1 old
+//  pilot.ele = DLRXinput.read(3);  // pitch - delta m  3 new, 2 old
+//  Thrust.write( DLRXinput.read(1) );  // motor - pass through directly    1 new, 3 old
+//  pilot.rud = DLRXinput.read(4);  // yaw - ignore Mode 1   4 new, 4 old
+//  // we will need to read in one more channel, likely a 2 or 3 way switch so that the pilot can change modes as desired
+//  pilot.modeSwitch = DLRXinput.read(5); // 5 new,  5 old
+////  pilot.speed = DLRXinput.read(7);
+//}
 
 void deg2servoDeg(){
   servoDeg[0]  = deg[0]  * SLOPE_L4 + INTERCEPT;
@@ -222,6 +355,48 @@ void deg2servoDeg(){
   servoDeg[8]  = deg[8]  * SLOPE_R2 + INTERCEPT;
   servoDeg[9]  = deg[9]  * SLOPE_R3 + INTERCEPT;
   servoDeg[10] = deg[10] * SLOPE_R4 + INTERCEPT;
+}
+
+void defDefl_2_degServo(double *defl, double *serv) {
+    /*
+     * defl = array of 11 elements of the deg deflection values of L4, L3,
+     *          L2, L1, L0, C, R0, R1, R2, R3, R4
+     * serv = array of 11 elements of the deg servo values of L4, L3, L2,
+     *          L1, L0, C, R0, R1, R2, R3, R4
+    */
+    int i;
+    // L4
+    serv[0] = 90.375+defl[0]*(1.1153+defl[0]*(-0.0171+defl[0]*0.0013));
+    // L3
+    serv[1] = 90.944+defl[1]*(1.6722+defl[1]*(0.0156+defl[1]*(0.0002-defl[1]*2.0e-5)));
+    // L2
+    serv[2] = 89.734+defl[2]*(1.324+defl[2]*(0.0081+defl[2]*0.0003));
+    // L1
+    serv[3] = 88.852+defl[3]*(1.4746+defl[3]*(0.0156+defl[3]*0.0007));
+    // L0
+    serv[4] = 89.608+defl[4]*(1.8549+defl[4]*(0.0065+defl[4]*0.0004));
+    // C
+    serv[5] = 89.178+defl[5]*(-3.9572+defl[5]*(0.2227-defl[5]*0.0102));
+    // R0
+    serv[6] = 89.126-defl[6]*1.965;
+    // R1
+    serv[7] = 90.551+defl[7]*(-1.5406+defl[7]*(-0.0086+defl[7]*-0.0005));
+    // R2
+    serv[8] = 91.282+defl[8]*(-1.6097+defl[8]*(-0.019+defl[8]*(-6.0e-6+defl[8]*5.0e-5)));
+    // R3
+    serv[9] = 90.89+defl[9]*(-1.6012);
+    // R4
+    serv[10] = 90.636+defl[10]*(-0.9463+defl[10]*(0.026+defl[10]*(-0.0009+defl[10]*-5.0e-5)));
+    
+    for (i=0; i<11; i++) {
+      if (i != 5) {
+        if (serv[i] > 150.0) {serv[i] = 150.0;}
+        if (serv[i] <  30.0) {serv[i] =  30.0;}
+      } else {
+        if (serv[i] > 160.0) {serv[i] = 160.0;}
+        if (serv[i] <  20.0) {serv[i] =  20.0;}
+      }
+    }
 }
 
 void Send2Servo(){
@@ -238,42 +413,6 @@ void Send2Servo(){
   R2.write(servoDeg[8]);
   R3.write(servoDeg[9]);
   R4.write(servoDeg[10]);
-//  logfile = SD.open("benchtest2.txt", FILE_WRITE);
-//  logfile.print("-------------SERVO OUTPUTS-----------------------\n");
-//  logfile.print("L4: ");
-//  logfile.print(servoDeg[0]);
-//  logfile.print("deg \n");
-//  logfile.print("L3: ");
-//  logfile.print(servoDeg[1]);
-//  logfile.print("deg \n");
-//  logfile.print("L2: ");
-//  logfile.print(servoDeg[2]);
-//  logfile.print("deg \n");
-//  logfile.print("L1: ");
-//  logfile.print(servoDeg[3]);
-//  logfile.print("deg \n");
-//  logfile.print("L0: ");
-//  logfile.print(servoDeg[4]);
-//  logfile.print("deg \n");
-//  logfile.print("Ce: ");
-//  logfile.print(servoDeg[5]);
-//  logfile.print("deg \n");
-//  logfile.print("R0: ");
-//  logfile.print(servoDeg[6]);
-//  logfile.print("deg \n");
-//  logfile.print("R1: ");
-//  logfile.print(servoDeg[7]);
-//  logfile.print("deg \n");
-//  logfile.print("R2: ");
-//  logfile.print(servoDeg[8]);
-//  logfile.print("deg \n");
-//  logfile.print("R3: ");
-//  logfile.print(servoDeg[9]);
-//  logfile.print("deg \n");
-//  logfile.print("R4: ");
-//  logfile.print(servoDeg[10]);
-//  logfile.print("deg \n");
-//  logfile.close();
 }
 
 void comm_receive() {
@@ -281,15 +420,16 @@ void comm_receive() {
   mavlink_message_t msg;
   mavlink_status_t status;
   
-  while(Serial1.available() > 0) { // as long as buffer size bigger than 0 -- pull out serial data
+  while(Pixport.available() > 0) { // as long as buffer size bigger than 0 -- pull out serial data
+//    Serial.println("got data!");
+    
 
-    c = Serial1.read(); // reads in the serial message
+    uint8_t c = Pixport.read(); // reads in the serial message
     
     // Try to get a new message
     if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
         
         switch(msg.msgid) {
-        default: break;
         // IMU data -- roll & yaw rates
         case MAVLINK_MSG_ID_RAW_IMU:  // #105 highres IMU / Check scaled IMU for acutal value readings 
           {
@@ -300,7 +440,7 @@ void comm_receive() {
           }
           break;
         // airspeed 
-        case MAVLINK_MSG_ID_VFR_HUD:  // #74 VFR_HUD
+        case MAVLINK_MSG_ID_VFR_HUD:  // #74 VFR_HUDInitializing Complete
           {
             mavlink_vfr_hud_t vfr_hud;
             mavlink_msg_vfr_hud_decode(&msg, &vfr_hud);
@@ -323,55 +463,73 @@ void comm_receive() {
             mavlink_msg_attitude_decode(&msg, &attitude);
             pix.bankAngle = attitude.roll;  // rad (-pi..+pi)
             pix.elevationAngle = attitude.pitch;
+            pix.time_msec = (int) attitude.time_boot_ms;
             // printVal("bank: ", attitude.roll);
             // printVal("elevation: ", attitude.pitch);
             
           }
           break;
+        default: break;
       }
     }
   }
 }
 
-// void printVal(char *name, double val) {
-    // Serial.print(name);
-    // Serial.printf("%20.12f", val);
-    // Serial.println();
-    // delay(1);
-// }
-
-void debug(){
-    int i;
-    logfile = SD.open(name, FILE_WRITE);
-    logfile.print("pilotCommands, ");
-    logfile.printf("%4u", pilot.ail);
-    logfile.print(", ");
-    logfile.printf("%4u",pilot.ele);
-    logfile.print(", ");
-    logfile.printf("%4u",pilot.rud);
-    logfile.print(", ");
-    logfile.printf("%4u",pilot.modeSwitch);
-    logfile.print(", ");
+void Write2Card(){
+//    int i;
+//    logfile = SD.open(name, FILE_WRITE);
     
-    logfile.print(" pixhawk, ");
-    logfile.printf("%6.2f", pix.airspeed);
-    logfile.print(", ");
-    logfile.printf("%6.2f", pix.climbRate);
-    logfile.print(", ");
-    logfile.printf("%6.2f", pix.bankAngle);
-    logfile.print(", ");
-    logfile.printf("%6.2f", pix.elevationAngle);
-    logfile.print(", ");
-    logfile.printf("%6.2f", pix.rollRate);
-    logfile.print(", ");
-    logfile.printf("%5.3f", dL->getAverage());
-    logfile.print(", ");
-    
-    logfile.print(" degrees, ");
-    for (i=0; i<11; i++){
-        logfile.printf("%6.2f", deg[i]);
-        logfile.print(", ");
-    }
-    logfile.println();
-    logfile.close();
+//    logfile.printf("%11" PRIu64 ", pilotCommands, %4u, %4u, %4u, %4u, pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f, ",pix.time_usec,pilot.ail,pilot.ele,pilot.rud,pilot.modeSwitch, pix.airspeed, pix.climbRate, pix.bankAngle, pix.elevationAngle, pix.rollRate, dL->getAverage());
+//    logfile.printf(" degrees, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, \n",deg[0],deg[1],deg[2],deg[3],deg[4],deg[5],deg[6],deg[7],deg[8],deg[9],deg[10]);
+  Serial.printf("%10u, pilotCommands, %4u, %4u, %4u, %4u, pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f,",pix.time_msec,pilot.ail,pilot.ele,pilot.rud,pilot.modeSwitch, pix.airspeed, pix.climbRate, pix.bankAngle, pix.elevationAngle, pix.rollRate, dL->getAverage());
+  Serial.printf(" degrees, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, \n",deg[0],deg[1],deg[2],deg[3],deg[4],deg[5],deg[6],deg[7],deg[8],deg[9],deg[10]);
+  if (SD_card_not_initialized && currentTime > 5000) {
+    Serial.println("whee doggy!");
+//    initializeSD();
+    SD_card_not_initialized = false;
+  }
 }
+
+
+///////////////////////// SRXL2 channel interface //////////////////////////////
+
+
+ void userProvidedReceivedChannelData(SrxlChannelData* pChannelData, bool isFailsafe)
+ {
+ // Get throttle channel value and convert to 1000 - 1500 - 2000 pwm range
+  ThrustPWM = srxlChData.values[THRO] >> 5;     // 16-bit to 11-bit range (0 - 2048)
+  ThrustPWM = int(double(ThrustPWM)*SRXL2scale) + SRXL2offset;
+  // write directly to throttle
+  Thrust.write(ThrustPWM);
+  
+  // Get Aile channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.ail = srxlChData.values[AILE] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.ail = int(double(pilot.ail)*SRXL2scale) + SRXL2offset;
+
+   // Get elevator channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.ele = srxlChData.values[ELEV] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.ele = int(double(pilot.ele)*SRXL2scale) + SRXL2offset;
+
+// Get rudder channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.rud = srxlChData.values[RUDD] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.rud = int(double(pilot.rud)*SRXL2scale) + SRXL2offset;
+
+   // Get modeswitch channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.modeSwitch = srxlChData.values[MOSW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.modeSwitch = int(double(pilot.modeSwitch)*SRXL2scale) + SRXL2offset;
+ }
+
+ void uartSetBaud(uint8_t uart, uint32_t baudRate) // Automatic adjust SRXL2 baudrate. 
+ {
+  // Not supported yet
+ }
+
+ void uartTransmit(uint8_t uart, uint8_t* pBuffer, uint8_t length)
+ {
+  for (uint8_t i=0; i < length; i++)
+  {
+    srxl2port.write(pBuffer[i]);
+  }
+  srxl2port.flush();
+ }
+ 

@@ -36,12 +36,12 @@ void mode2(struct pilotCommands pilot, double dL, double *lr);
 // aircraft properties
 #define W 97.09                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
 #define S 1.14                      // planform area of main wing (m^2)
-#define B 9.91936999529998          // wingspan (ft)
+#define B 9.91936999529998          // wingspan (ft)  currently not used
 // transmitter values
-#define TRANS_PWM_MIN 900.0
-#define TRANS_PWM_MAX 2096.0
-#define TRANS_PWM_NOM 1495.0
-#define TRANS_PWM_NOISE 150.0
+#define TRANS_PWM_MIN 800.0
+#define TRANS_PWM_MAX 2200.0
+#define TRANS_PWM_NOM 1500.0
+#define TRANS_PWM_NOISE 50.0
 
 // custom struct types
 struct telemetryData {
@@ -50,6 +50,7 @@ struct telemetryData {
     double bankAngle;
     double elevationAngle;
     double rollRate;
+    int time_msec;
 };
 struct pilotCommands {
     int ail;
