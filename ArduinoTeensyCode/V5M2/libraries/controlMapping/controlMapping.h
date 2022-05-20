@@ -58,6 +58,7 @@ struct pilotCommands {
     int ele;
     int rud;
     int modeSwitch;
+    int baySwitch;
     int speed;
 };
 

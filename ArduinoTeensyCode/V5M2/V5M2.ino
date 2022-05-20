@@ -34,13 +34,11 @@
 #include "libraries\runningAverage\runningAverage.cpp"
 #include <SD.h>
 #include <SPI.h>
-#include <inttypes.h>
 
 // FUNCTIONS USED
 //##########################################################################
 // Sabrina's functions
 //void ReadInPPM();
-void deg2servoDeg();
 void defDefl_2_degServo(double *defl, double *serv);
 void Send2Servo();
 void Write2Card();
@@ -49,25 +47,9 @@ void checkSRXL2();
 void initializeSD();
 
 void blend(double dL, struct pilotCommands in, double b, double *degDefl);
-#define BlendFactor 6.6666666666666667e-05            // five second blend term
+#define BlendFactor 6.6666666666666667e-06            // five second blend term
 
 #define Pixport Serial4
-
-// define the global constants (they are all in uppercase for ease of identifying)
-//##########################################################################
-// deg2servoDeg mapping values
-#define INTERCEPT 90.
-#define SLOPE_L4 1.8683385580
-#define SLOPE_L3 1.8881396271
-#define SLOPE_L2 1.8718415201
-#define SLOPE_L1 1.8768560681
-#define SLOPE_L0 2.2508591065
-#define SLOPE_CE -3.8012820513
-#define SLOPE_R0 -2.0861405197
-#define SLOPE_R1 -1.9586296057
-#define SLOPE_R2 -2.0307048151
-#define SLOPE_R3 -1.8913857678
-#define SLOPE_R4 -1.6026105874
 
 // Global Constants for SD Card Logging
 const int chipSelect = 10;
@@ -90,7 +72,7 @@ unsigned long currentTime;
 #define ELEV 2
 #define RUDD 3
 #define MOSW 4
-#define AUX1 5
+#define BASW 5
 #define AUX2 6
 #define AUX3 7
 
@@ -201,6 +183,7 @@ void setup()
   pilot.ele = 1500;
   pilot.rud = 1500;
   pilot.modeSwitch = 800;
+  pilot.baySwitch = 800;
 }
 void loop() {
 
@@ -248,6 +231,11 @@ void loop() {
   // convert degrees control surface deflection to degrees servo arm deflection
 //  deg2servoDeg();
   defDefl_2_degServo(deg, servoDeg);
+
+  // bay switch
+  if (pilot.baySwitch > (TRANS_PWM_NOM + 100.0)) {
+    servoDeg[5] = 90.0;
+  }
   
   // send out the individual PWM signals
   Send2Servo();
@@ -367,31 +355,6 @@ void checkSRXL2() {
   }
 }
 
-//void ReadInPPM(){
-//  // read in the PWM channels from the RX PPM signal
-//  pilot.ail = DLRXinput.read(2);  // roll - delta l  2 new, 1 old
-//  pilot.ele = DLRXinput.read(3);  // pitch - delta m  3 new, 2 old
-//  Thrust.write( DLRXinput.read(1) );  // motor - pass through directly    1 new, 3 old
-//  pilot.rud = DLRXinput.read(4);  // yaw - ignore Mode 1   4 new, 4 old
-//  // we will need to read in one more channel, likely a 2 or 3 way switch so that the pilot can change modes as desired
-//  pilot.modeSwitch = DLRXinput.read(5); // 5 new,  5 old
-////  pilot.speed = DLRXinput.read(7);
-//}
-
-void deg2servoDeg(){
-  servoDeg[0]  = deg[0]  * SLOPE_L4 + INTERCEPT;
-  servoDeg[1]  = deg[1]  * SLOPE_L3 + INTERCEPT;
-  servoDeg[2]  = deg[2]  * SLOPE_L2 + INTERCEPT;
-  servoDeg[3]  = deg[3]  * SLOPE_L1 + INTERCEPT;
-  servoDeg[4]  = deg[4]  * SLOPE_L0 + INTERCEPT;
-  servoDeg[5]  = deg[5]  * SLOPE_CE + INTERCEPT;
-  servoDeg[6]  = deg[6]  * SLOPE_R0 + INTERCEPT;
-  servoDeg[7]  = deg[7]  * SLOPE_R1 + INTERCEPT;
-  servoDeg[8]  = deg[8]  * SLOPE_R2 + INTERCEPT;
-  servoDeg[9]  = deg[9]  * SLOPE_R3 + INTERCEPT;
-  servoDeg[10] = deg[10] * SLOPE_R4 + INTERCEPT;
-}
-
 void defDefl_2_degServo(double *defl, double *serv) {
     /*
      * defl = array of 11 elements of the deg deflection values of L4, L3,
@@ -401,27 +364,27 @@ void defDefl_2_degServo(double *defl, double *serv) {
     */
     int i;
     // L4
-    serv[0] = 90.375+defl[0]*(1.1153+defl[0]*(-0.0171+defl[0]*0.0013));
+    serv[0] = 91.308+defl[0]*(1.3052+defl[0]*(0.0232+defl[0]*(0.0001-defl[0]*3.0e-5)));
     // L3
-    serv[1] = 90.944+defl[1]*(1.6722+defl[1]*(0.0156+defl[1]*(0.0002-defl[1]*2.0e-5)));
+    serv[1] = 88.871+defl[1]*(1.564+defl[1]*(0.0031+defl[1]*(0.0003-defl[1]*2.0e-6)));
     // L2
-    serv[2] = 89.734+defl[2]*(1.324+defl[2]*(0.0081+defl[2]*0.0003));
+    serv[2] = 88.573+defl[2]*(1.799+defl[2]*(0.0124-defl[2]*0.0003));
     // L1
-    serv[3] = 88.852+defl[3]*(1.4746+defl[3]*(0.0156+defl[3]*0.0007));
+    serv[3] = 90.036+defl[3]*(1.6049+defl[3]*(0.014+defl[3]*0.0004));
     // L0
-    serv[4] = 89.608+defl[4]*(1.8549+defl[4]*(0.0065+defl[4]*0.0004));
+    serv[4] = 91.241+defl[4]*(1.6469+defl[4]*(0.0089+defl[4]*0.0008));
     // C
-    serv[5] = 89.178+defl[5]*(-3.9572+defl[5]*(0.2227-defl[5]*0.0102));
+    serv[5] = 92.255+defl[5]*(-2.3126+defl[5]*(0.0054-defl[5]*(0.0008-defl[5]*4.0e-5)));
     // R0
-    serv[6] = 89.126-defl[6]*1.965;
+    serv[6] = 91.038+defl[6]*(-1.7425+defl[6]*(-0.012-defl[6]*0.0006));
     // R1
-    serv[7] = 90.551+defl[7]*(-1.5406+defl[7]*(-0.0086+defl[7]*-0.0005));
+    serv[7] = 90.646+defl[7]*(-1.2843+defl[7]*(-0.0002-defl[7]*0.0008));
     // R2
-    serv[8] = 91.282+defl[8]*(-1.6097+defl[8]*(-0.019+defl[8]*(-6.0e-6+defl[8]*5.0e-5)));
+    serv[8] = 89.657+defl[8]*(-1.7604+defl[8]*(-0.007-defl[8]*8.0e-5));
     // R3
-    serv[9] = 90.89+defl[9]*(-1.6012);
+    serv[9] = 90.819+defl[9]*(-1.296+defl[9]*(-0.0027-defl[9]*0.0008));
     // R4
-    serv[10] = 90.636+defl[10]*(-0.9463+defl[10]*(0.026+defl[10]*(-0.0009+defl[10]*-5.0e-5)));
+    serv[10] = 90.431+defl[10]*(-1.101+defl[10]*(-0.0145+defl[10]*(-0.0004+defl[10]*1.0e-5)));
     
     for (i=0; i<11; i++) {
       if (i != 5) {
@@ -552,6 +515,10 @@ void Write2Card(){
    // Get modeswitch channel value and convert to 1000 - 1500 - 2000 pwm range
   pilot.modeSwitch = srxlChData.values[MOSW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
   pilot.modeSwitch = int(double(pilot.modeSwitch)*SRXL2scale) + SRXL2offset;
+
+   // Get modeswitch channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.baySwitch = srxlChData.values[BASW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.baySwitch = int(double(pilot.baySwitch)*SRXL2scale) + SRXL2offset;
  }
 
  void uartSetBaud(uint8_t uart, uint32_t baudRate) // Automatic adjust SRXL2 baudrate. 
