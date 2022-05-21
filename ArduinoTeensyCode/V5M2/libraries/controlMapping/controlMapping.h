@@ -2457,7 +2457,7 @@ void mode4(struct pilotCommands pilot, double CL1, double *lr) {
     
     Cm1   = -pwm2frac(pilot.ele) * 0.1;
     pbar1 = -pwm2frac(pilot.ail) * 0.1;
-    Cn1   = -pwm2frac(pilat.rud) * 0.02;
+    Cn1   = -pwm2frac(pilot.rud) * 0.02;
     
     CL2 = CL1 * CL1;
     CL3 = CL2 * CL1;
