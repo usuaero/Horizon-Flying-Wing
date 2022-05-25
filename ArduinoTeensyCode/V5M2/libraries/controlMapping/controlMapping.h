@@ -60,6 +60,7 @@ struct pilotCommands {
     int ele;
     int rud;
     int modeSwitch;
+    int higherModeSwitch;
     int baySwitch;
     int speed;
 };
@@ -808,7 +809,7 @@ void mode2(struct pilotCommands pilot, double dL, double *lr) {
 }
 
 void mode3(struct pilotCommands pilot, double CL1, double *lr) {
-    double C, S[5], A[5];
+    double C, Sym[5], Asym[5];
     double CL2, CL3;
     double Cm1, Cm2, Cm3, Cm4, Cm5;
     double pbar1, pbar2, pbar3, pbar4, pbar5;
@@ -976,7 +977,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 799461948477.0525 +
                       pbar5 * -34964.19748990726)));
     
-    S[0] = (
+    Sym[0] = (
               (      (        -2.5199417630843484 +
                       pbar1 * -9.383842873573609e-08 +
                       pbar2 * 200.5460531340597 +
@@ -1122,7 +1123,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 679370508521.9722 +
                       pbar5 * -248137.53189289884)));
     
-    S[1] = (
+    Sym[1] = (
               (      (        -2.397690716475905 +
                       pbar1 * -5.548459943171024e-08 +
                       pbar2 * 400.6414297509754 +
@@ -1268,7 +1269,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 1189952221332.5364 +
                       pbar5 * -28329.979231930323)));
     
-    S[2] = (
+    Sym[2] = (
               (      (        -2.0393741850572384 +
                       pbar1 * 1.8284112465293605e-07 +
                       pbar2 * 608.464994764675 +
@@ -1414,7 +1415,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * -243788848861.20648 +
                       pbar5 * 330030.0369516302)));
     
-    S[3] = (
+    Sym[3] = (
               (      (        -2.534746456903358 +
                       pbar1 * -1.388815852243079e-07 +
                       pbar2 * -72.51982214626922 +
@@ -1560,7 +1561,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 385285898270.1316 +
                       pbar5 * -576432.0933468753)));
     
-    S[4] = (
+    Sym[4] = (
               (      (        -7.7565928942673095 +
                       pbar1 * 2.3740919511985603e-07 +
                       pbar2 * -1703.1108252056201 +
@@ -1706,7 +1707,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * -2508880286645.806 +
                       pbar5 * 430436.30257774336)));
     
-    A[0] = (
+    Asym[0] = (
               (      (        8.98564046013181e-06 +
                       pbar1 * -31.18858010975713 +
                       pbar2 * -0.003946680499944514 +
@@ -1852,7 +1853,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * -24038292.988327194 +
                       pbar5 * 543264494951.23364)));
     
-    A[1] = (
+    Asym[1] = (
               (      (        -5.941032015671703e-06 +
                       pbar1 * -38.88044163082967 +
                       pbar2 * 0.0026427810610130335 +
@@ -1998,7 +1999,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 8586548.583368331 +
                       pbar5 * 559949564741.1304)));
     
-    A[2] = (
+    Asym[2] = (
               (      (        -8.44270073036389e-05 +
                       pbar1 * -0.39305111625817507 +
                       pbar2 * 0.03731974710322718 +
@@ -2144,7 +2145,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * 101119458.0219828 +
                       pbar5 * -16145187042772.635)));
     
-    A[3] = (
+    Asym[3] = (
               (      (        9.498411683910307e-05 +
                       pbar1 * -37.72897376913801 +
                       pbar2 * -0.04202389879963079 +
@@ -2290,7 +2291,7 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
                       pbar4 * -359036683.8631507 +
                       pbar5 * 14421194423737.135)));
     
-    A[4] = (
+    Asym[4] = (
               (      (        0.00010411343060966565 +
                       pbar1 * -206.00505828067006 +
                       pbar2 * -0.04607133179173652 +
@@ -2441,9 +2442,9 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
     // loop thru inboard to outboard control surfaces
     for (i=0; i<5; i++) {
         // set left control surface
-        lr[4-i] = bounds( S[i] - A[i] );
+        lr[4-i] = bounds( Sym[i] - Asym[i] );
         // set right control surface
-        lr[6+i] = bounds( S[i] + A[i] );
+        lr[6+i] = bounds( Sym[i] + Asym[i] );
     }
 }
 

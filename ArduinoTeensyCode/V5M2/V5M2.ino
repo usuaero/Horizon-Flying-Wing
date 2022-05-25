@@ -32,8 +32,8 @@
 #include "libraries\controlMapping\controlMapping.h"
 // include running average
 #include "libraries\runningAverage\runningAverage.cpp"
-#include <SD.h>
-#include <SPI.h>
+//#include <SD.h>
+//#include <SPI.h>
 
 // FUNCTIONS USED
 //##########################################################################
@@ -51,14 +51,14 @@ void blend(double dL, struct pilotCommands in, double b, double *degDefl);
 
 #define Pixport Serial4
 
-// Global Constants for SD Card Logging
-const int chipSelect = 10;
-File logfile;
-// name of the log file stored to the SD card
-char name[11]; // "TLg999.txt"
-const int mode_1_write_loops = 18000;
-const int mode_2_write_loops =  1000;
-int file_number = 0;
+//// Global Constants for SD Card Logging
+//const int chipSelect = 10;
+//File logfile;
+//// name of the log file stored to the SD card
+//char name[11]; // "TLg999.txt"
+//const int mode_1_write_loops = 18000;
+//const int mode_2_write_loops =  1000;
+//int file_number = 0;
 
 // Values for SRXL2
 #define SRXL2_PORT_BAUDRATE_DEFAULT 115200
@@ -73,7 +73,7 @@ unsigned long currentTime;
 #define RUDD 3
 #define MOSW 4
 #define BASW 5
-#define AUX2 6
+#define HMSW 6
 #define AUX3 7
 
 // GLOBAL VARIABLES
@@ -118,10 +118,10 @@ const int mode_1_runAvg_loops = 1;
 const int mode_2_runAvg_loops = 1;
 double b=0.0;
 
-// initialize counter for running average
-int k = 0;
-// initialize counter for writing to card
-int j = 0;
+//// initialize counter for running average
+//int k = 0;
+//// initialize counter for writing to card
+//int j = 0;
 
 int ThrustPWM = 1024; // variable to store the PWM Throttle position 
 double SRXL2scale = 1400.0 / 2048.0; 
@@ -224,7 +224,15 @@ void loop() {
         blend(dL->getAverage(), pilot, b, deg);
     }
     else {
-        mode2(pilot, dL->getAverage(), deg);
+      if (pilot.higherModeSwitch < TRANS_PWM_NOM - 200) {
+          mode2(pilot, dL->getAverage(), deg);     
+      }
+      else if (pilot.higherModeSwitch > TRANS_PWM_NOM + 200) {
+          mode4(pilot, dL->getAverage(), deg);     
+      }
+      else {
+          mode3(pilot, dL->getAverage(), deg);     
+      }
     }
   }
   
@@ -269,45 +277,54 @@ void blend(double dL, struct pilotCommands in, double b, double *degDefl) {
      * degDefl -> array of degrees deflection across horizon
      */
     // declare variables
-    double m1[11], m2[11];
+    double m1[11], mh[11];
     int i;
-    // compute mode 1 and 2 deflections
+    // compute mode 1 and higher mode deflections
     mode1(in, m1);
-    mode2(in, dL, m2);
+//    mode2(in, dL, mh);
+    if (in.higherModeSwitch < TRANS_PWM_NOM - 200) {
+        mode2(in, dL, mh);
+    }
+    else if (in.higherModeSwitch > TRANS_PWM_NOM + 200) {
+        mode4(in, dL, mh);
+    }
+    else {
+        mode3(in, dL, mh);     
+    }
     // compute output of blended values
     for (i=0; i<11; i++) {
-        degDefl[i] = (m2[i] - m1[i]) * b + m1[i];
+        degDefl[i] = (mh[i] - m1[i]) * b + m1[i];
     }
 }
 
-void initializeSD() {
-  // set up SD card
-  Serial.println("Initializing SD card...");
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
-  // Determine file name for most recent file
-  // check to see if "full", otherwise continue
-  if (SD.exists("TLg999.txt")) {
-    return;
-  }
-  // for loop, check root.exists(filename), update filename, run till false
-  for (file_number=0; file_number <= 999; file_number++){
-      snprintf(name,sizeof(name),"TLg%03d.txt",file_number);
-      if (SD.exists(name)) {
-        continue;
-      }
-      else {
-        break;
-      }
-  }
-    // open the file.
-  logfile = SD.open(name, FILE_WRITE);
-  logfile.print("Initializing Complete\n");
-  logfile.close();
-}
+//void initializeSD() {
+//  // set up SD card
+//  Serial.println("Initializing SD card...");
+//  if (!SD.begin(chipSelect)) {
+//    Serial.println("initialization failed!");
+//    return;
+//  }
+//  Serial.println("initialization done.");
+//  // Determine file name for most recent file
+//  // check to see if "full", otherwise continue
+//  if (SD.exists("TLg999.txt")) {
+//    return;
+//  }
+//  // for loop, check root.exists(filename), update filename, run till false
+//  for (file_number=0; file_number <= 999; file_number++){
+//      snprintf(name,sizeof(name),"TLg%03d.txt",file_number);
+//      if (SD.exists(name)) {
+//        continue;
+//      }
+//      else {
+//        break;
+//      }
+//  }
+//    // open the file.
+//  logfile = SD.open(name, FILE_WRITE);
+//  logfile.print("Initializing Complete\n");
+//  logfile.close();
+//}
 
 void checkSRXL2() {
   currentTime = millis();
@@ -516,9 +533,13 @@ void Write2Card(){
   pilot.modeSwitch = srxlChData.values[MOSW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
   pilot.modeSwitch = int(double(pilot.modeSwitch)*SRXL2scale) + SRXL2offset;
 
-   // Get modeswitch channel value and convert to 1000 - 1500 - 2000 pwm range
+   // Get bayswitch channel value and convert to 1000 - 1500 - 2000 pwm range
   pilot.baySwitch = srxlChData.values[BASW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
   pilot.baySwitch = int(double(pilot.baySwitch)*SRXL2scale) + SRXL2offset;
+
+   // Get higher modeswitch channel value and convert to 1000 - 1500 - 2000 pwm range
+  pilot.higherModeSwitch = srxlChData.values[HMSW] >> 5;    // 16-bit to 11-bit range (0 - 2048)
+  pilot.higherModeSwitch = int(double(pilot.higherModeSwitch)*SRXL2scale) + SRXL2offset;
  }
 
  void uartSetBaud(uint8_t uart, uint32_t baudRate) // Automatic adjust SRXL2 baudrate. 
