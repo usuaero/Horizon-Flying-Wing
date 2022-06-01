@@ -241,7 +241,7 @@ void loop() {
   defDefl_2_degServo(deg, servoDeg);
 
   // bay switch
-  if (pilot.baySwitch > (TRANS_PWM_NOM + 100.0)) {
+  if (pilot.baySwitch > (TRANS_PWM_NOM - 100.0)) {
     servoDeg[5] = 90.0;
   }
   
