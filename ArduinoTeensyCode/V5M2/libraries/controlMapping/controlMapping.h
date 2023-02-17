@@ -35,9 +35,10 @@ void mode4(struct pilotCommands pilot, double CL1, double *lr);
 #define DL_MAX 0.9                  // max acceptable value for dL
 #define DL_MIN 0.1                  // mIN acceptable value for dL
 #define PSCT_GAIN 4.0               // tunable gain on the SCT criteria for the calcCL2 function
-#define m1_pitchTrim 0.05           // % uptrim needed for mode 1
+#define m1_pitchTrim   -0.15           // %   uptrim needed for mode  1 equiv to 3 deg up
+#define m234_pitchTrim -0.025          // % downtrim needed for modes 2, 3, and 4 equiv to 0.5 deg down
 // aircraft properties
-#define W 97.09                     // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
+#define W 100.521                   // weight of aircraft (N)             ====THIS NEEDS TO BE UPDATED====
 #define S 1.14                      // planform area of main wing (m^2)
 #define B 9.91936999529998          // wingspan (ft)  currently not used
 // transmitter values
@@ -248,7 +249,13 @@ void mode2(struct pilotCommands pilot, double dL, double *lr) {
     int i;
     
     CL1   = dL;
-    Cm1   = -pwm2frac(pilot.ele) * 0.3;
+    Cm1   = -pwm2frac(pilot.ele);
+    if (Cm1 >= 0.0) {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 - m234_pitchTrim);
+    } else {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 + m234_pitchTrim);
+    }
+    Cm1 = Cm1 * 0.3;
     pbar1 = -pwm2frac(pilot.ail) * 0.2;
     
     CL0 = 1.;
@@ -815,7 +822,13 @@ void mode3(struct pilotCommands pilot, double CL1, double *lr) {
     double pbar1, pbar2, pbar3, pbar4, pbar5;
     int i;
     
-    Cm1   = -pwm2frac(pilot.ele) * 0.1;
+    Cm1   = -pwm2frac(pilot.ele);
+    if (Cm1 >= 0.0) {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 - m234_pitchTrim);
+    } else {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 + m234_pitchTrim);
+    }
+    Cm1 = Cm1 * 0.1;
     pbar1 = -pwm2frac(pilot.ail) * 0.1;
     
     CL2 = CL1 * CL1;
@@ -2456,7 +2469,13 @@ void mode4(struct pilotCommands pilot, double CL1, double *lr) {
     double Cn1, Cn2, Cn3, Cn4;
     int i;
     
-    Cm1   = -pwm2frac(pilot.ele) * 0.1;
+    Cm1   = -pwm2frac(pilot.ele);
+    if (Cm1 >= 0.0) {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 - m234_pitchTrim);
+    } else {
+        Cm1 = m234_pitchTrim + Cm1 * (1.0 + m234_pitchTrim);
+    }
+    Cm1 = Cm1 * 0.1;
     pbar1 = -pwm2frac(pilot.ail) * 0.1;
     Cn1   = -pwm2frac(pilot.rud) * 0.02;
     

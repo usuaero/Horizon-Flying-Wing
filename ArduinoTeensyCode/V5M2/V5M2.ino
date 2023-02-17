@@ -47,7 +47,10 @@ void checkSRXL2();
 void initializeSD();
 
 void blend(double dL, struct pilotCommands in, double b, double *degDefl);
-#define BlendFactor 6.6666666666666667e-06            // five second blend term
+//#define BlendFactor 6.6666666666666667e-06            // five second blend term
+#define M2BlendFactor 9.3333333333333333e-06            // five second blend term
+#define M3BlendFactor 1.5333333333333333e-05            // five second blend term
+#define M4BlendFactor 4.0000000000000000e-05            // five second blend term
 
 #define Pixport Serial4
 
@@ -56,8 +59,8 @@ void blend(double dL, struct pilotCommands in, double b, double *degDefl);
 //File logfile;
 //// name of the log file stored to the SD card
 //char name[11]; // "TLg999.txt"
-//const int mode_1_write_loops = 18000;
-//const int mode_2_write_loops =  1000;
+//const int mode_1_write_loops = 500;
+//const int mode_2_write_loops =  250;
 //int file_number = 0;
 
 // Values for SRXL2
@@ -117,6 +120,7 @@ runAvg* dL = new runAvg(3000, 0.);
 const int mode_1_runAvg_loops = 1;
 const int mode_2_runAvg_loops = 1;
 double b=0.0;
+double CL_fixed =  0.5; // 0.4274;
 
 //// initialize counter for running average
 //int k = 0;
@@ -182,7 +186,7 @@ void setup()
   pilot.ail = 1500;
   pilot.ele = 1500;
   pilot.rud = 1500;
-  pilot.modeSwitch = 800;
+  pilot.modeSwitch = 1800;
   pilot.baySwitch = 800;
 }
 void loop() {
@@ -219,19 +223,32 @@ void loop() {
   //}
   else {
     if (b < 1.0) {
-        b += BlendFactor;
+//        b += BlendFactor;
+      if (pilot.higherModeSwitch < TRANS_PWM_NOM - 200) {
+          b += M2BlendFactor;
+      }
+      else if (pilot.higherModeSwitch > TRANS_PWM_NOM + 200) {
+          b += M4BlendFactor;
+      }
+      else {
+          b += M3BlendFactor;
+      }
         if (b > 1.0) {b = 1.0;}
-        blend(dL->getAverage(), pilot, b, deg);
+//        blend(dL->getAverage(), pilot, b, deg);
+        blend(CL_fixed, pilot, b, deg);
     }
     else {
       if (pilot.higherModeSwitch < TRANS_PWM_NOM - 200) {
-          mode2(pilot, dL->getAverage(), deg);     
+//          mode2(pilot, dL->getAverage(), deg);
+          mode2(pilot, CL_fixed, deg);
       }
       else if (pilot.higherModeSwitch > TRANS_PWM_NOM + 200) {
-          mode4(pilot, dL->getAverage(), deg);     
+//          mode4(pilot, dL->getAverage(), deg);
+          mode4(pilot, CL_fixed, deg);
       }
       else {
-          mode3(pilot, dL->getAverage(), deg);     
+//          mode3(pilot, dL->getAverage(), deg);
+          mode3(pilot, CL_fixed, deg);
       }
     }
   }
@@ -239,6 +256,8 @@ void loop() {
   // convert degrees control surface deflection to degrees servo arm deflection
 //  deg2servoDeg();
   defDefl_2_degServo(deg, servoDeg);
+//  servoDeg[6] = double(double((dL->getAverage() - 0.1)/0.9) * 30.0 + 90.0);
+//  servoDeg[7] = double(b * 30.0 + 90.0);
 
   // bay switch
   if (pilot.baySwitch > (TRANS_PWM_NOM - 100.0)) {
@@ -496,13 +515,14 @@ void Write2Card(){
     
 //    logfile.printf("%11" PRIu64 ", pilotCommands, %4u, %4u, %4u, %4u, pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f, ",pix.time_usec,pilot.ail,pilot.ele,pilot.rud,pilot.modeSwitch, pix.airspeed, pix.climbRate, pix.bankAngle, pix.elevationAngle, pix.rollRate, dL->getAverage());
 //    logfile.printf(" degrees, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, \n",deg[0],deg[1],deg[2],deg[3],deg[4],deg[5],deg[6],deg[7],deg[8],deg[9],deg[10]);
-  Serial.printf("%10u, pilotCommands, %4u, %4u, %4u, %4u, pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f,",pix.time_msec,pilot.ail,pilot.ele,pilot.rud,pilot.modeSwitch, pix.airspeed, pix.climbRate, pix.bankAngle, pix.elevationAngle, pix.rollRate, dL->getAverage());
+//  Serial.printf("%10u, pilotCommands, %4u, %4u, %4u, %4u, pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f,",pix.time_msec,pilot.ail,pilot.ele,pilot.rud,pilot.modeSwitch);
+  Serial.printf("pixhawk, %6.2f, %6.2f, %6.2f, %6.2f, %8.2f, %5.3f,", pix.airspeed, pix.climbRate, pix.bankAngle, pix.elevationAngle, pix.rollRate, dL->getAverage());
   Serial.printf(" degrees, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, %6.2f, \n",deg[0],deg[1],deg[2],deg[3],deg[4],deg[5],deg[6],deg[7],deg[8],deg[9],deg[10]);
-  if (SD_card_not_initialized && currentTime > 5000) {
-    Serial.println("whee doggy!");
-//    initializeSD();
-    SD_card_not_initialized = false;
-  }
+//  if (SD_card_not_initialized && currentTime > 5000) {
+//    Serial.println("whee doggy!");
+////    initializeSD();
+//    SD_card_not_initialized = false;
+//  }
 }
 
 
